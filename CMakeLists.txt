@@ -1,0 +1,9 @@
+# Arbitrary somewhat-recent cmake version
+cmake_minimum_required(VERSION 3.20)
+
+project(
+    Airship
+    VERSION 0.0
+    DESCRIPTION "Beginnings of a game engine")
+
+add_subdirectory(src)
