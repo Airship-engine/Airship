@@ -1,0 +1,29 @@
+# Run unit tests using CTest
+name: Tests
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  checkout-and-run-tests:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+
+    steps:
+    - uses: actions/checkout@v2
+    - uses: lukka/get-cmake@latest
+    - name: Setup build directory
+      run: mkdir build/
+    - name: Build
+      working-directory: ./build
+      run: |
+        cmake ../
+        cmake --build .
+    - name: Run tests
+      working-directory: ./build
+      run: ctest
