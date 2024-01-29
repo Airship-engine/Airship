@@ -25,6 +25,7 @@ namespace Airship {
     protected:
         std::optional<Window*> CreateWindow(int w, int h)
         {
+            if (w < 1 || h < 1) return std::nullopt;
             return m_Windows.emplace_back(std::make_unique<Window>(w, h)).get();
         }
 
