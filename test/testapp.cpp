@@ -1,6 +1,5 @@
 #include "core/application.h"
-
-#define EXPECT(expr, val) if ((expr) != val) return EXIT_FAILURE
+#include "gtest/gtest.h"
 
 class GameClass : public Airship::Application
 {
@@ -19,15 +18,15 @@ void GameClass::OnStart()
     win = CreateWindow(width, height);
 }
 
-int main()
-{ 
+TEST(Window, nonnull) {
     GameClass app;
     app.Run();
 
-    EXPECT(app.GetWindow().has_value(), true);
+    EXPECT_EQ(app.GetWindow().has_value(), true);
+}
+TEST(Window, null) {
+    GameClass app(-1, -1);
+    app.Run();
 
-    GameClass app2(-1, -1);
-    app2.Run();
-
-    EXPECT(app2.GetWindow().has_value(), false);
+    EXPECT_EQ(app.GetWindow().has_value(), false);
 }
