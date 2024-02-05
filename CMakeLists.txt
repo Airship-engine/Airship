@@ -10,7 +10,7 @@ project(
 # Remove the unused ZERO_CHECK build target
 set(CMAKE_SUPPRESS_REGENERATION true)
 
-option(BUILD_TESTS "Build and compile unit tests" ON)
+option(BUILD_TESTS "Build and compile unit tests" OFF)
 
 if (BUILD_TESTS)
     enable_testing()
