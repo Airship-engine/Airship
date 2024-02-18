@@ -1,6 +1,6 @@
 #include "core/application.h"
 #include "gtest/gtest.h"
-#include "common.h"
+#include "test/common.h"
 
 TEST(Window, nonnull) {
     GameClass app;
