@@ -8,4 +8,5 @@ target_include_directories(core
     PUBLIC
         ${PROJECT_SOURCE_DIR}/src/core/include
 )
+target_link_libraries(core PUBLIC spdlog)
 target_compile_features(core PUBLIC cxx_std_20)
