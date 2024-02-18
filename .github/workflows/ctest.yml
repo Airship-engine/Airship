@@ -12,7 +12,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        config: [debug]
+        config: [debug, release]
     runs-on: ${{ matrix.os }}
 
     steps:
@@ -24,7 +24,7 @@ jobs:
     - name: Build
       working-directory: ./build
       run: |
-        cmake ../ -DBUILD_TESTS=ON -DBUILD_EXTERNAL_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }}
+        cmake ../ -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }}
         cmake --build .
     - name: Run tests
       working-directory: ./build
