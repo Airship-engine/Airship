@@ -17,9 +17,5 @@ if (BUILD_TESTS)
     include(CTest)
 endif()
 
-add_subdirectory(External)
+add_subdirectory(external)
 add_subdirectory(src)
-
-if (BUILD_TESTS)
-    add_subdirectory(test)
-endif()
