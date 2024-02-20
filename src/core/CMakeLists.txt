@@ -1,6 +1,7 @@
 
 set(CORE_SOURCES
     ${PROJECT_SOURCE_DIR}/include/core/application.h
+    ${PROJECT_SOURCE_DIR}/include/core/convar.h
     ${PROJECT_SOURCE_DIR}/include/core/logging.h
     ${PROJECT_SOURCE_DIR}/include/core/window.h
     application.cpp
@@ -8,6 +9,7 @@ set(CORE_SOURCES
 
 set(CORE_TEST_SOURCES
     application.test.cpp
+    convar.test.cpp
     logging.test.cpp
 )
 
