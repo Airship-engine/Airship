@@ -1,32 +1,13 @@
 #include <map>
+#include <memory>
 #include <optional>
 #include <string>
 
-/*
-enum class ConVarType {
-    String,
-    Int,
-    Float,
-    Bool
-};
+namespace Airship
+{
 
-enum class ConVar {
-    Default_UserName,
-    Render_BufferDepth
-};
-
-struct ConVarObject {
-    ConVar var;
-    ConVarType type;
-    std::string defaultValue;
-    std::string helpText;
-};
-
-ConVarObject conVars[] = {
-    {ConVar::Default_UserName, ConVarType::String, "DefaultUser", "Defines the default name for a user when a platform is not available"},
-    {ConVar::Render_BufferDepth, ConVarType::Int, "2", "Tells the rendering engine how many buffers to use"}
-};
-*/
+template< typename T>
+using not_cstring = std::enable_if_t<!std::is_same_v<const char *, T>>;
 
 enum class ConvarType {
     String,
@@ -66,6 +47,9 @@ class ConvarValue
 {
 public:
     ConvarValue(ConvarType type) : m_Type(type) {}
+    virtual ~ConvarValue() = default;
+
+    ConvarType type() const { return m_Type; }
 
 protected:
     ConvarType m_Type;
@@ -79,6 +63,22 @@ public:
 
     value_type& get() { return m_Value; }
 
+    Convar& operator=(value_type val)
+    {
+        m_Value = val;
+        return *this;
+    }
+
+    auto operator<=>(value_type val) const
+    {
+        return m_Value <=> val;
+    }
+
+    bool operator==(value_type val) const
+    {
+        return m_Value == val;
+    }
+
 private:
     value_type m_Value;
 };
@@ -86,81 +86,51 @@ private:
 class ConvarRegistry 
 {
 public: 
-    static ConvarRegistry& get() {
-        static ConvarRegistry singleton;
-        return singleton;
+
+    template<typename T, typename = not_cstring<T>>
+    Convar<T>* RegisterKey(std::string name, T value) {
+        if (m_ConvarMap.contains(name))
+        {
+            // TODO: inform when m_ConvarMap already contains name
+            ConvarValue* val = m_ConvarMap.at(name).get();
+            return dynamic_cast<Convar<T>*>(val);
+        }
+
+        auto it = m_ConvarMap.insert({name, std::make_unique<Convar<T>>(value)}).first;
+        return dynamic_cast<Convar<T>*>(it->second.get());
     }
-
-    //template<typename T>
-    //T Read(const ConvarKey<T>& keyName) const {
-        //return T();
-    //}
-
-    template<typename T, std::enable_if_t<!std::is_same_v<const char *, T>>>
-    Convar<T> RegisterKey(std::string name, T value) {
-        //ConvarKey{name, value};
-        //m_ConvarMap[key.m_Name] = key;
-    }
-
-    template<typename T = const char*>
-    Convar<std::string> RegisterKey(std::string name, T value) {
+    Convar<std::string>* RegisterKey(std::string name, const char* value) {
         return RegisterKey(name, std::string(value));
     }
 
-
-    // User.DefaultName Some Default Name
-    // Read("User.DefaultName")
     template<typename T>
-    std::optional<Convar<T>> Read(std::string name)
+    std::optional<Convar<T>*> read(std::string name)
     {
-        if(m_ConvarMap.find(name) == m_ConvarMap.end())
+        if (!m_ConvarMap.contains(name))
+        {
+            // TODO: Warn of a missing key
             return std::nullopt;
+        }
 
-        ConvarValue* value = m_ConvarMap.at(name);
-        ConvarType varType = value->m_Type;
+        ConvarValue* value = m_ConvarMap.at(name).get();
+        ConvarType varType = value->type();
         ConvarType toType = ConvarTypeTraits<T>::type;
         if(varType != toType)
+        {
+            // TODO: Warn of an invalid conversion
             return std::nullopt;
+        }
 
-        return dynamic_cast<Convar<T>>(value);
+        return dynamic_cast<Convar<T>*>(value);
     }
 
+    size_t size() const { return m_ConvarMap.size(); }
+
 private:
-    std::map<std::string, ConvarValue*> m_ConvarMap;
+    std::map<std::string, std::unique_ptr<ConvarValue>> m_ConvarMap;
 };
 
-namespace CV 
-{
-    //constexpr const char* g_DefaultUserName = "User.DefaultName";
-    //const ConvarKey<std::string> g_DefaultUserName{"User.DefaultName", "DefaultName"};
-    //const ConvarKey<const char*> g_DefaultCharValue{"User.DefaultName", "DefaultName"};
-
-}
-
-#define CONVAR(name, value) Convars::get().RegisterKey(name, value)
+#define CONVAR(name, value) Airship::ConvarRegistry::get().RegisterKey(name, value)
 #define CONVAR_STR(name, value) CONVAR(name, std::string(value))
 
-int main() 
-{
-    const Convar<std::string>& g_NewConvar = ConvarRegistry::get().RegisterKey("User.DefaultName", "DefaultName");
-
-    //CONVAR("User.DefaultName", "DefaultName");
-    //CONVAR("User.DefaultLevel", 3);
-//
-    //ConvarKey<std::string> defaultUsername = ConvarRegistry::get().RegisterKey("User.DefaultName", "DefaultName");
-    //ConvarRegistry::get().RegisterKey("Render.BufferDepth", 2);
-
-    //Convars::get().Read(ConvarStore::DefaultName)
-}
-
-//CONVAR_STRING(g_ConVar_DefaultUserName, "DefaultUser", "Defines the default name for a user when a platform is not available")
-
-//std::string i = ConvarRegistry::get().Read(CV::g_DefaultUserName);
-
-//BEGIN_CONVAR_MAP()
-    //CONVAR_STRING("User.DefaultName", "DefaultUser", "Defines the default name for a user when a platform is not available")
-    //CONVAR_INT("Render.BufferDepth", 2, "Tells the rendering engine how many buffers to use")
-//
-    //CONVAR_EXEC("User.DefaultName", &RunSomeFunction, "Defines the default name for a user when a platform is not available")
-//END_CONVAR_MAP()
-//
+} // namespace Airship

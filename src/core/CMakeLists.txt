@@ -9,6 +9,7 @@ set(CORE_SOURCES
 
 set(CORE_TEST_SOURCES
     application.test.cpp
+    convar.test.cpp
     logging.test.cpp
 )
 
