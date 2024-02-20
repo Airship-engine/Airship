@@ -130,7 +130,4 @@ private:
     std::map<std::string, std::unique_ptr<ConvarValue>> m_ConvarMap;
 };
 
-#define CONVAR(name, value) Airship::ConvarRegistry::get().RegisterKey(name, value)
-#define CONVAR_STR(name, value) CONVAR(name, std::string(value))
-
 } // namespace Airship
