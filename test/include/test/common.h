@@ -10,7 +10,7 @@ public:
 protected:
     void OnStart() override
     {
-        win = CreateWindow(width, height);
+        win = CreateWindow(width, height, "test app");
     }
 
     int height = 800, width = 600;
