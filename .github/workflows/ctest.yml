@@ -19,12 +19,15 @@ jobs:
           cc: clang-18
           cxx: clang++-18
           export-commands: true
+          extra-packages: libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules mesa-common-dev
     runs-on: ${{ matrix.os }}
 
     steps:
     - uses: actions/checkout@v4
       with:
         submodules: 'true'
+    - if: ${{ matrix.extra-packages }}
+      run: sudo apt install -y ${{ matrix.extra-packages }}
     - name: Setup build directory
       run: mkdir build/
     - name: CMake Configure

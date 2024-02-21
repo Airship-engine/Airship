@@ -4,3 +4,6 @@
 [submodule "External/googletest"]
 	path = external/googletest
 	url = https://github.com/Airship-engine/googletest.git
+[submodule "external/glfw"]
+	path = external/glfw
+	url = https://github.com/Airship-engine/glfw.git
