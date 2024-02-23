@@ -1,9 +1,6 @@
 [submodule "External/spdlog"]
 	path = external/spdlog
 	url = https://github.com/Airship-engine/spdlog.git
-[submodule "External/fmt"]
-	path = external/fmt
-	url = https://github.com/Airship-engine/fmt.git
 [submodule "External/googletest"]
 	path = external/googletest
 	url = https://github.com/Airship-engine/googletest.git

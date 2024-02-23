@@ -8,24 +8,38 @@ on:
     branches: [ main ]
 
 jobs:
-  checkout-and-run-tests:
+  build-and-run:
+    name: ${{ matrix.os }}/${{ matrix.config }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-24.04, windows-latest]
         config: [debug, release]
+        include:
+        - os: ubuntu-24.04
+          cc: clang-18
+          cxx: clang++-18
+          export-commands: true
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       with:
         submodules: 'true'
     - name: Setup build directory
       run: mkdir build/
+    - name: CMake Configure
+      env:
+        CC: ${{ matrix.cc }}
+        CXX: ${{ matrix.cxx }}
+      working-directory: ./build
+      run: cmake ../ -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+    - name: Output CMake Commands
+      working-directory: ./build
+      if: matrix.export-commands
+      run: cat compile_commands.json
     - name: Build
       working-directory: ./build
-      run: |
-        cmake ../ -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }}
-        cmake --build .
+      run: cmake --build .
     - name: Run tests
       working-directory: ./build
       run: ctest -C ${{ matrix.config }} --output-on-failure
