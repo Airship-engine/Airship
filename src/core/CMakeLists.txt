@@ -13,6 +13,10 @@ set(CORE_TEST_SOURCES
     logging.test.cpp
 )
 
+if(NOT BUILD_FOR_CI)
+    list(APPEND CORE_TEST_SOURCES application.test.cpp)
+endif()
+
 add_library(core ${CORE_SOURCES})
 target_include_directories(core
     PUBLIC

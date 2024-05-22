@@ -35,7 +35,7 @@ jobs:
         CC: ${{ matrix.cc }}
         CXX: ${{ matrix.cxx }}
       working-directory: ./build
-      run: cmake ../ -DBUILD_TESTS=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+      run: cmake ../ -DBUILD_TESTS=ON -DBUILD_FOR_CI=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
     - name: Output CMake Commands
       working-directory: ./build
       if: matrix.export-commands
