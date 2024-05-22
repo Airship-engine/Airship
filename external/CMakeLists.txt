@@ -3,9 +3,6 @@ if (BUILD_TESTS)
     add_subdirectory(googletest)
 endif()
 
-set(FMT_GTEST_EXTERNAL ON)
-add_subdirectory(fmt)
-
-set(SPDLOG_FMT_EXTERNAL ON)
 set(SPDLOG_INSTALL OFF)
+set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(spdlog)
