@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <optional>
+#include <string>
 #include <vector>
 
 namespace Airship {
@@ -13,7 +14,7 @@ namespace Airship {
         void Run();
 
     protected:
-        std::optional<Window*> CreateWindow(int w, int h);
+        std::optional<Window*> CreateWindow(int w, int h, const std::string &title, bool visible = true);
 
         virtual void OnStart() {}
 
