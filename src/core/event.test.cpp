@@ -4,18 +4,6 @@
 
 struct TestEvent  {};
 
-struct DataEvent {
-    DataEvent(std::vector<std::string_view> strings, bool val, double scale) 
-        : m_Strings(strings),
-        m_Value(val),
-        m_Scale(scale)
-        {}
-
-    std::vector<std::string_view> m_Strings;
-    bool m_Value;
-    double m_Scale;
-};
-
 TEST(Event, Init) {
     EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
@@ -141,11 +129,11 @@ TEST(Event, CleanupPublisher) {
 
 // Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove references to the deleted publisher.
 TEST(Event, DataIntegrity) {
-    const DataEvent dataEvent(
-        {"Test", "Test1", "Test2"},
-        true,
-        3.14
-    );
+    const struct DataType {
+        std::vector<std::string_view> m_Strings{"Test1", "Test2", "Test3"};
+        bool m_Value{true};
+        double m_Scale{3.14};
+    } dataEvent;
 
     EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
@@ -155,7 +143,7 @@ TEST(Event, DataIntegrity) {
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     bool eventTriggered = false;
-    es.SubscribeTo<DataEvent>(ep, [&dataEvent, &eventTriggered](const DataEvent& e) 
+    es.SubscribeTo<decltype(dataEvent)>(ep, [&dataEvent, &eventTriggered](const decltype(dataEvent)& e) 
     {
         EXPECT_EQ(dataEvent.m_Strings, e.m_Strings);
         EXPECT_EQ(dataEvent.m_Value, e.m_Value);
