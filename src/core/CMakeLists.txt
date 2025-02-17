@@ -5,12 +5,15 @@ set(CORE_SOURCES
     ${PROJECT_SOURCE_DIR}/include/core/logging.h
     ${PROJECT_SOURCE_DIR}/include/core/utils.hpp
     ${PROJECT_SOURCE_DIR}/include/core/window.h
+    ${PROJECT_SOURCE_DIR}/include/core/event.h
     application.cpp
+    event.cpp
 )
 
 set(CORE_TEST_SOURCES
     convar.test.cpp
     logging.test.cpp
+    event.test.cpp
 )
 
 if(NOT BUILD_FOR_CI)
