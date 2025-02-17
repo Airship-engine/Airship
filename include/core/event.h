@@ -1,12 +1,13 @@
 #pragma once
 
+#include <any>
 #include <deque>
 #include <functional>
+#include <memory>
 #include <mutex>
 #include <string_view>
 #include <typeindex>
 #include <unordered_set>
-#include <any>
 
 // Event system is heavily inspired by DeveloperPaul123's eventbus implementation:
 // https://github.com/DeveloperPaul123/eventbus
