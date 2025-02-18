@@ -1,0 +1,29 @@
+{
+    "version": 8,
+    "configurePresets": [
+        {
+            "name": "tests",
+            "displayName": "With tests",
+            "description": "Regular build, with tests",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "",
+                "BUILD_TESTS": "ON"
+            }
+        },
+        {
+            "name": "no tests",
+            "displayName": "Without tests",
+            "description": "Regular build, without tests",
+            "binaryDir": "${sourceDir}/build/${presetName}",
+            "installDir": "${sourceDir}/install/${presetName}",
+            "cacheVariables": {
+                "CMAKE_BUILD_TYPE": "Debug",
+                "CMAKE_TOOLCHAIN_FILE": "",
+                "BUILD_TESTS": "OFF"
+            }
+        }
+    ]
+}
