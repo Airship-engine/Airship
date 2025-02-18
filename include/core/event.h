@@ -1,13 +1,13 @@
 #pragma once
 
 #include <any>
-#include <deque>
 #include <functional>
 #include <memory>
 #include <mutex>
 #include <string_view>
 #include <typeindex>
 #include <unordered_set>
+#include <vector>
 
 // Event system is heavily inspired by DeveloperPaul123's eventbus implementation:
 // https://github.com/DeveloperPaul123/eventbus
@@ -77,7 +77,7 @@ private:
     std::unordered_multimap<std::type_index, EventCallback> m_EventCallbacks;
     std::unordered_multimap<EventSubscriber *, const void *> m_SubscriberCallbacks;
 
-    std::deque<std::unique_ptr<EventWrapperInterface>> m_QueuedEvents;
+    std::vector<std::unique_ptr<EventWrapperInterface>> m_QueuedEvents;
     std::mutex m_QueueMutex;
 };
 

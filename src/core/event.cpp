@@ -24,8 +24,8 @@ void EventPublisher::RemoveSubscriber(EventSubscriber& subscriber)
 void EventPublisher::Process() 
 {
     std::unique_lock<std::mutex> lock(m_QueueMutex);
-    std::deque<std::unique_ptr<EventWrapperInterface>> events = std::move(m_QueuedEvents);
-    m_QueuedEvents = std::deque<std::unique_ptr<EventWrapperInterface>>();
+    std::vector<std::unique_ptr<EventWrapperInterface>> events;
+    std::swap(events, m_QueuedEvents);
     lock.unlock();
 
     for (const auto& eventWrapper : events)
