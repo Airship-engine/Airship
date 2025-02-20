@@ -7,10 +7,13 @@ function(add_airship_test SOURCE)
             ${SOURCE} 
             ${PROJECT_SOURCE_DIR}/test/include/test/common.h
         )
+        # TODO: link to the required libraries for each test,
+        # instead of to all of them.
         target_link_libraries(${TEST_NAME}
             PRIVATE
                 core
                 gtest_main
+                AirshipRenderer
         )
         target_include_directories(${TEST_NAME}
             PRIVATE
