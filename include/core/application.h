@@ -12,6 +12,7 @@ namespace Airship {
     {
     public:
         void Run();
+        virtual ~Application();
 
     protected:
         std::optional<Window*> CreateWindow(int w, int h, const std::string &title, bool visible = true);
