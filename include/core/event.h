@@ -28,6 +28,8 @@ struct EventCallback
 class EventWrapperInterface
 {
 public:
+    virtual ~EventWrapperInterface() {};
+
     virtual void PublishSync(EventPublisher *eventPublisher) = 0;
 };
 
