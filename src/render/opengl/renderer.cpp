@@ -15,6 +15,66 @@ constexpr static GLenum toGL(ShaderType stype) {
     return 0;
 }
 
+void Vertex::setAttribData() {
+    // Needs to be expanded if vertex data changes
+    setVertexAttribDataFloat(0, 3);
+    enableVertexAttribArray(0);
+}
+
+void Vertex::setVertexAttribDataFloat(int idx, int count) {
+    // TODO: Improve flexibility and coverage
+    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, count * sizeof(float), (void *)0);
+}
+
+void Vertex::enableVertexAttribArray(int idx) {
+    glEnableVertexAttribArray(idx);
+}
+
+Mesh::Mesh(const std::vector<Vertex> &vertices) : m_Count(static_cast<int>(vertices.size())) {
+    m_VertexArrayObject = createVertexArrayObject();
+    bindVertexArrayObject();
+
+    m_BufferArrayObject = createBuffer();
+    bindBuffer();
+    copyBuffer(sizeof(vertices), vertices.data());
+
+    Vertex::setAttribData();
+}
+
+void Mesh::draw() const {
+    int off = 0; // Maybe used, maybe always 0?
+    bindVertexArrayObject();
+    glDrawArrays(GL_TRIANGLES, off, m_Count);
+}
+
+Mesh::vao_id Mesh::createVertexArrayObject() const {
+    // TODO: Allow batch creation of VAOs
+    vao_id vid;
+    glCreateVertexArrays(1, &vid);
+    return vid;
+}
+
+void Mesh::bindVertexArrayObject() const {
+    glBindVertexArray(m_VertexArrayObject);
+}
+
+Mesh::buffer_id Mesh::createBuffer() const {
+    // TODO: allow batch creation of buffers
+    buffer_id ret;
+    glGenBuffers(1, &ret);
+    return ret;
+}
+
+void Mesh::bindBuffer() const {
+    glBindBuffer(GL_ARRAY_BUFFER, m_BufferArrayObject);
+}
+
+void Mesh::copyBuffer(size_t bytes, const void *data) const {
+    // GL_STATIC_DRAW: Set data once, used many times.
+    // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
+    glBufferData(GL_ARRAY_BUFFER, bytes, data, GL_STATIC_DRAW);
+}
+
 void Renderer::init() {
     if (gl3wInit()) {
         SHIPLOG_MAYDAY("Unable to initialize gl3w");
@@ -26,44 +86,7 @@ void Renderer::resize(int width, int height) {
     glViewport(0, 0, width, height);
 }
 
-vao_id Renderer::createVertexArrayObject() {
-    // TODO: Allow batch creation of VAOs
-    vao_id vid;
-    glCreateVertexArrays(1, &vid);
-    return vid;
-}
-
-void Renderer::bindVertexArrayObject(vao_id vid) {
-    glBindVertexArray(vid);
-}
-
-buffer_id Renderer::createBuffer() {
-    // TODO: allow batch creation of buffers
-    buffer_id ret;
-    glGenBuffers(1, &ret);
-    return ret;
-}
-
-void Renderer::bindBuffer(buffer_id buf_id) {
-    glBindBuffer(GL_ARRAY_BUFFER, buf_id);
-}
-
-void Renderer::copyBuffer(size_t bytes, void *data) {
-    // GL_STATIC_DRAW: Set data once, used many times.
-    // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
-    glBufferData(GL_ARRAY_BUFFER, bytes, data, GL_STATIC_DRAW);
-}
-
-void Renderer::setVertexAttribDataFloat(int idx, int count) {
-    // TODO: Improve flexibility and coverage
-    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, count * sizeof(float), (void *)0);
-}
-
-void Renderer::enableVertexAttribArray(int idx) {
-    glEnableVertexAttribArray(idx);
-}
-
-shader_id Renderer::createShader(ShaderType stype) {
+Renderer::shader_id Renderer::createShader(ShaderType stype) {
     return glCreateShader(toGL(stype));
 }
 
@@ -88,7 +111,7 @@ void Renderer::deleteShader(shader_id sid) {
     glDeleteShader(sid);
 }
 
-program_id Renderer::createProgram() {
+Renderer::program_id Renderer::createProgram() {
     return glCreateProgram();
 }
 
@@ -116,10 +139,10 @@ void Renderer::bindProgram(program_id pid) {
     glUseProgram(pid);
 }
 
-void Renderer::drawTriangles(int off, int count) {
-    // TODO: move clearing to somewhere else, to allow drawing more than one batch of triangles.
+void Renderer::draw(const std::vector<Mesh> &meshes) {
     glClearColor(0.39f, 0.582f, 0.926f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
-    glDrawArrays(GL_TRIANGLES, off, count);
+    for (const auto &mesh : meshes)
+        mesh.draw();
 }
 } // namespace Airship

@@ -30,7 +30,7 @@ TEST(Renderer, Init) {
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
 
-    Airship::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
+    Airship::Renderer::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
     bool ok = r.compileShader(vs_id, vertexShaderSource);
     EXPECT_TRUE(ok);
     if (!ok) {
@@ -45,7 +45,7 @@ TEST(Renderer, Init) {
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
-    Airship::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
+    Airship::Renderer::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
     ok = r.compileShader(fs_id, fragmentShaderSource);
     EXPECT_TRUE(ok);
     if (!ok) {
@@ -53,7 +53,7 @@ TEST(Renderer, Init) {
         SHIPLOG_ERROR(log);
     }
 
-    Airship::program_id pid = r.createProgram();
+    Airship::Renderer::program_id pid = r.createProgram();
     r.attachShader(pid, vs_id);
     r.attachShader(pid, fs_id);
     ok = r.linkProgram(pid);
@@ -67,21 +67,23 @@ TEST(Renderer, Init) {
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
-    float vertices[] = {
-        -0.5f, -0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-         0.0f,  0.5f, 0.0f
+    using VertexData = std::vector<Airship::Vertex>;
+    VertexData verticesA = {
+        {{-0.5f, -0.5f, 0.0f}},
+        {{ 0.5f, -0.5f, 0.0f}},
+        {{ 0.0f,  0.5f, 0.0f}},
     };
 
-    Airship::vao_id vao = r.createVertexArrayObject();
-    r.bindVertexArrayObject(vao);
+    VertexData verticesB = {
+        {{-0.5f,  0.5f, 0.0f}},
+        {{ 0.5f,  0.5f, 0.0f}},
+        {{ 0.0f, -0.5f, 0.0f}},
+    };
 
-    Airship::buffer_id buf_id = r.createBuffer();
-    r.bindBuffer(buf_id);
-    r.copyBuffer(sizeof(vertices), &vertices);
-
-    r.setVertexAttribDataFloat(0, 3);
-    r.enableVertexAttribArray(0);
+    std::vector<Airship::Mesh> meshes {
+        verticesA,
+        verticesB
+    };
 
     // TODO: Pull into application?
     while(!window->shouldClose())
@@ -90,8 +92,7 @@ TEST(Renderer, Init) {
 
         // Draw code
         r.bindProgram(pid);
-        r.bindVertexArrayObject(vao);
-        r.drawTriangles(0, 3);
+        r.draw(meshes);
 
         // Show the rendered buffer
         window->swapBuffers();

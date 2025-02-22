@@ -1,12 +1,39 @@
 #pragma once
 
+#include "core/utils.hpp"
+
 #include <string>
+#include <vector>
 
 namespace Airship {
-    using buffer_id = unsigned int;
-    using vao_id = unsigned int;
-    using shader_id = unsigned int;
-    using program_id = unsigned int;
+
+    struct Vertex {
+        Vertex(const Utils::Point<float,3> &pos) : m_Position(pos) {}
+        static void setAttribData();
+
+        Utils::Point<float, 3> m_Position;
+    private:
+        static void setVertexAttribDataFloat(int idx, int count);
+        static void enableVertexAttribArray(int idx);
+    };
+
+    struct Mesh {
+        using vao_id = unsigned int;
+        using buffer_id = unsigned int;
+        Mesh(const std::vector<Vertex> &vertices);
+        void draw() const;
+    private:
+        vao_id createVertexArrayObject() const;
+        void bindVertexArrayObject() const;
+
+        buffer_id createBuffer() const;
+        void bindBuffer() const;
+        void copyBuffer(size_t bytes, const void *data) const;
+
+        vao_id m_VertexArrayObject;
+        buffer_id m_BufferArrayObject;
+        int m_Count;
+    };
     
     enum class ShaderType {
         Vertex,
@@ -14,18 +41,11 @@ namespace Airship {
     };
     
     class Renderer {
-        public:
+    public:
+        using shader_id = unsigned int;
+        using program_id = unsigned int;
         void init();
         void resize(int width, int height);
-        
-        vao_id createVertexArrayObject();
-        void bindVertexArrayObject(vao_id vid);
-        
-        buffer_id createBuffer();
-        void bindBuffer(buffer_id buf_id);
-        void copyBuffer(size_t bytes, void *data);
-        void setVertexAttribDataFloat(int idx, int count);
-        void enableVertexAttribArray(int idx);
         
         shader_id createShader(ShaderType stype);
         bool compileShader(shader_id sid, const char *source);
@@ -37,7 +57,7 @@ namespace Airship {
         bool linkProgram(program_id pid);
         std::string getLinkLog(program_id pid);
         void bindProgram(program_id pid);
-        
-        void drawTriangles(int off, int count);
+
+        void draw(const std::vector<Mesh> &meshes);
     };
 } // namespace Airship
