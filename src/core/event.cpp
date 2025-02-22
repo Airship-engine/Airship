@@ -2,6 +2,8 @@
 
 #include <iostream>
 
+namespace Airship {
+
 EventPublisher::~EventPublisher()
 {
     for(auto& [subscriber, callbacks] : m_SubscriberCallbacks )
@@ -42,3 +44,4 @@ EventSubscriber::~EventSubscriber()
     for (auto publisher : m_Subscribed)
         publisher->RemoveSubscriber(*this);
 }
+} // namespace Airship

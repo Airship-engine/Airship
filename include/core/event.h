@@ -12,6 +12,9 @@
 // Event system is heavily inspired by DeveloperPaul123's eventbus implementation:
 // https://github.com/DeveloperPaul123/eventbus
 
+
+namespace Airship {
+
 class EventSubscriber;
 class EventPublisher;
 
@@ -119,3 +122,4 @@ public:
 private:
     EventType m_Event;
 };
+} // namespace Airship
