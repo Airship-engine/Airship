@@ -1,10 +1,11 @@
 #pragma once
 
 #include <array>
+#include <cassert>
 
 namespace Airship::Utils
 {
-    template <typename value_type, size_t D>
+    template <typename value_type, std::size_t D>
     class Point
     {
     public:
@@ -16,12 +17,12 @@ namespace Airship::Utils
             static_assert(sizeof...(Args) == D, "Wrong number of arguments");
         }
 
-        value_type& operator[](size_t idx) {
+        value_type& operator[](std::size_t idx) {
             assert(idx < D);
             return coords[idx];
         }
 
-        value_type operator[](size_t idx) const {
+        value_type operator[](std::size_t idx) const {
             static_assert(idx < D);
             return coords[idx];
         }
