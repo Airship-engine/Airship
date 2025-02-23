@@ -15,3 +15,8 @@ if (UNIX)
     set(GLFW_BUILD_WAYLAND ON)
 endif()
 add_subdirectory(glfw)
+
+if (NOT OPENGL_DISABLED)
+    # Add gl3w - generated files added to the build/ directory
+    add_subdirectory(gl3w)
+endif()

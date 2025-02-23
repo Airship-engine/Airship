@@ -5,21 +5,21 @@
 struct TestEvent  {};
 
 TEST(Event, Init) {
-    EventPublisher ep;
+    Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
-    EventSubscriber es;
+    Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 }
 TEST(Event, PublishSync) {
-    EventPublisher ep;
+    Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
     int count = 0;
 
-    EventSubscriber es;
+    Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     EXPECT_EQ(count, 0);
@@ -36,11 +36,11 @@ TEST(Event, PublishSync) {
     EXPECT_EQ(count, 1);
 }
 TEST(Event, Publish) {
-    EventPublisher ep;
+    Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
-    EventSubscriber es;
+    Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     int count = 0;
@@ -73,7 +73,7 @@ TEST(Event, Publish) {
     EXPECT_EQ(count, 3);
 }
 TEST(Event, CleanupSubscriber) {
-    EventPublisher ep;
+    Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
@@ -81,7 +81,7 @@ TEST(Event, CleanupSubscriber) {
     int count = 0;
 
     {
-        EventSubscriber es;
+        Airship::EventSubscriber es;
         EXPECT_EQ(es.SubscribedCount(), 0);
 
         es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& e) { ++count; });
@@ -104,13 +104,13 @@ TEST(Event, CleanupSubscriber) {
 
 // Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove references to the deleted publisher.
 TEST(Event, CleanupPublisher) {
-    EventSubscriber es;
+    Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     const TestEvent testEvent;
 
     {
-        EventPublisher ep;
+        Airship::EventPublisher ep;
         EXPECT_EQ(ep.SubscriberCount(), 0);
         EXPECT_EQ(ep.EventCount(), 0);
 
@@ -135,11 +135,11 @@ TEST(Event, DataIntegrity) {
         double m_Scale{3.14};
     } dataEvent;
 
-    EventPublisher ep;
+    Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
-    EventSubscriber es;
+    Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     bool eventTriggered = false;

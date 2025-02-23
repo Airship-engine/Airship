@@ -19,7 +19,7 @@ jobs:
           cc: clang-18
           cxx: clang++-18
           export-commands: true
-          extra-packages: libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules mesa-common-dev
+          extra-packages: libwayland-dev libxkbcommon-dev wayland-protocols extra-cmake-modules mesa-common-dev libglu1-mesa-dev
     runs-on: ${{ matrix.os }}
 
     steps:

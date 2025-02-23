@@ -10,7 +10,9 @@ namespace Airship {
 void Application::Run() {
     GLFW_CHECK(glfwInit());
     OnStart();
+}
 
+Application::~Application() {
     GLFW_CHECK(glfwTerminate());
 }
 
