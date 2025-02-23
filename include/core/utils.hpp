@@ -13,38 +13,38 @@ namespace Airship::Utils
 
         // Source: https://stackoverflow.com/questions/8158261/templates-how-to-control-number-of-constructor-args-using-template-variable
         template <typename... Args>
-        Point(Args... args) : coords{value_type(args)...} {
+        Point(Args... args) : m_Coords{value_type(args)...} {
             static_assert(sizeof...(Args) == D, "Wrong number of arguments");
         }
 
         value_type& operator[](std::size_t idx) {
             assert(idx < D);
-            return coords[idx];
+            return m_Coords[idx];
         }
 
         value_type operator[](std::size_t idx) const {
             static_assert(idx < D);
-            return coords[idx];
+            return m_Coords[idx];
         }
 
         value_type& x()
         {
-            return coords[0];
+            return m_Coords[0];
         }
 
         template<int dims = D, typename = std::enable_if_t<dims >= 2>>
         value_type& y()
         {
-            return coords[1];
+            return m_Coords[1];
         }
 
         template<int dims = D, typename = std::enable_if_t<dims >= 3>>
         value_type& z()
         {
-            return coords[2];
+            return m_Coords[2];
         }
 
     private:
-        std::array<value_type, D> coords;
+        std::array<value_type, D> m_Coords;
     };
 }

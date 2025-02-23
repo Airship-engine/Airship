@@ -32,39 +32,39 @@ namespace Airship {
             GLFW_CHECK(glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE));
 
             GLFW_CHECK(glfwWindowHint(GLFW_VISIBLE, visible ? GLFW_TRUE : GLFW_FALSE));
-            GLFW_CHECK(window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr));
+            GLFW_CHECK(m_Window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr));
 
             // Should we allow background window creation? Not sure if that's a thing...
             // OpenGL-specific, too
-            GLFW_CHECK(glfwMakeContextCurrent(window));
+            GLFW_CHECK(glfwMakeContextCurrent(m_Window));
 
             // Handle resize callback - store this pointer to get the appropriate function pointer.
-            GLFW_CHECK(glfwSetWindowUserPointer(window, this));
-            GLFW_CHECK(glfwSetFramebufferSizeCallback(window, windowResizeCallback));
+            GLFW_CHECK(glfwSetWindowUserPointer(m_Window, this));
+            GLFW_CHECK(glfwSetFramebufferSizeCallback(m_Window, windowResizeCallback));
         }
 
         ~Window() {
-            if (window) GLFW_CHECK(glfwDestroyWindow(window));
+            if (m_Window) GLFW_CHECK(glfwDestroyWindow(m_Window));
         }
 
         Utils::Point<int, 2> GetSize() const {
             int width, height;
-            GLFW_CHECK(glfwGetWindowSize(window, &width, &height));
+            GLFW_CHECK(glfwGetWindowSize(m_Window, &width, &height));
 
             return Utils::Point<int, 2>(width, height);
         }
 
-        GLFWwindow * Get() { return window; }
+        GLFWwindow * Get() { return m_Window; }
         void setWindowResizeCallback(resize_callback fn) {
-            resizeCallback = fn;
+            m_ResizeCallback = fn;
         };
 
         void swapBuffers() const {
-            glfwSwapBuffers(window);
+            glfwSwapBuffers(m_Window);
         }
 
         bool shouldClose() const {
-            return glfwWindowShouldClose(window) != 0;
+            return glfwWindowShouldClose(m_Window) != 0;
         }
 
         void pollEvents() const {
@@ -72,14 +72,14 @@ namespace Airship {
         }
 
     private:
-        GLFWwindow* window;
-        resize_callback resizeCallback;
+        GLFWwindow* m_Window;
+        resize_callback m_ResizeCallback;
 
         static void windowResizeCallback(GLFWwindow *window, int width, int height) {
             Window *win = nullptr;
             GLFW_CHECK(win = static_cast<Window*>(glfwGetWindowUserPointer(window)));
-            if (win && win->resizeCallback) {
-                win->resizeCallback(width, height);
+            if (win && win->m_ResizeCallback) {
+                win->m_ResizeCallback(width, height);
             }
         }
     };
