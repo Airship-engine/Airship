@@ -18,6 +18,7 @@ TEST(Renderer, Init) {
     // Should ultimately be handled inside of the application.
     Airship::Renderer r;
     r.init();
+    r.setClearColor(Airship::Color::CornflowerBlue);
     r.resize(window->GetSize().x(), window->GetSize().y());
     app.GetWindow().value()->setWindowResizeCallback([&r](int width, int height) {
         r.resize(width, height);
