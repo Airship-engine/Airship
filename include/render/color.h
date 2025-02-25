@@ -4,13 +4,14 @@ constexpr float SMALL_ALPHA = 1.0e-6f;
 
 namespace Airship {
 
-struct Color {
+struct HSVColor;
 
-    constexpr Color(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
+struct RGBColor {
 
-    bool operator==(const Color &other) const {
-        return r == other.r && g == other.g && b == other.b && a == other.a;
-    }
+    constexpr RGBColor(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
+    RGBColor(const HSVColor& other);
+
+    bool operator==(const RGBColor& other) const = default;
 
     // https://en.wikipedia.org/wiki/Blend_modes
     enum class BlendMode {
@@ -19,46 +20,46 @@ struct Color {
         Add,
         Average
     };
-    static Color blend(const Color &bg, const Color &fg, BlendMode mode = BlendMode::Alpha);
-    static Color lerp(const Color &bg, const Color &fg, float t);
-
-    // https://en.wikipedia.org/wiki/Alpha_compositing
-    enum class CompositeMode {
-        Over, // Same as alpha blending
-    };
-    static Color composite(const Color &bg, const Color &fg, CompositeMode mode = CompositeMode::Over);
+    static RGBColor blend(const RGBColor& bg, const RGBColor& fg, BlendMode mode = BlendMode::Alpha);
+    static RGBColor lerp(const RGBColor& bg, const RGBColor& fg, float t);
 
     enum class NormalizeMode {
-        Clip,
+        Clamp,
         Scale
     };
-    Color normalize(NormalizeMode mode = NormalizeMode::Scale);
-
-    static const Color White;   
-    static const Color Black;
-
-    static const Color LightGrey;
-    static const Color Grey;
-    static const Color DarkGrey;
-    
-    static const Color Red;
-    static const Color Green;
-    static const Color Blue;
-    
-    static const Color Cyan;
-    static const Color Magenta;
-    static const Color Yellow;
-    
-    static const Color CornflowerBlue;
-    static const Color Orange;
+    RGBColor normalize(NormalizeMode mode = NormalizeMode::Scale);
 
     float r, g, b, a;
-    
-    static Color HSV(float h, float s, float v, float a = 1.0f);
-    float H() const;
-    float S() const;
-    float V() const;
+};
+using Color = RGBColor;
+
+struct HSVColor {
+    HSVColor(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
+    HSVColor(const RGBColor& other);
+
+    float h, s, v, a;
 };
 
+namespace Colors {
 
+constexpr RGBColor White(1.0f, 1.0f, 1.0f);
+constexpr RGBColor Black(0.0f, 0.0f, 0.0f);
+
+constexpr RGBColor LightGrey(0.75f, 0.75f, 0.75f);
+constexpr RGBColor Grey(0.5f, 0.5f, 0.5f);
+constexpr RGBColor DarkGrey(0.25f, 0.25f, 0.25f);
+
+constexpr RGBColor Red(1.0f, 0.0f, 0.0f);
+constexpr RGBColor Green(0.0f, 1.0f, 0.0f);
+constexpr RGBColor Blue(0.0f, 0.0f, 1.0f);
+
+constexpr RGBColor Cyan(0.0f, 1.0f, 1.0f);
+constexpr RGBColor Magenta(1.0f, 0.0f, 1.0f);
+constexpr RGBColor Yellow(1.0f, 1.0f, 0.0f);
+
+constexpr RGBColor Orange(1.0f, 0.5f, 0.0f);
+
+constexpr RGBColor CornflowerBlue(0.39f, 0.582f, 0.926f);
+
+} // namespace Colors
 } // namespace Airship

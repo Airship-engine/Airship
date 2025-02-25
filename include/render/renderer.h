@@ -61,8 +61,8 @@ namespace Airship {
         void bindProgram(program_id pid);
 
         void draw(const std::vector<Mesh> &meshes);
-        void setClearColor(const Color &color);
+        void setClearColor(const RGBColor &color);
     private:
-        Color m_ClearColor = Color::Magenta;
+        Color m_ClearColor = Colors::Magenta;
     };
 } // namespace Airship

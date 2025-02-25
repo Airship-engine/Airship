@@ -146,7 +146,7 @@ void Renderer::draw(const std::vector<Mesh> &meshes) {
         mesh.draw();
 }
 
-void Renderer::setClearColor(const Color &color) {
+void Renderer::setClearColor(const RGBColor &color) {
     m_ClearColor = color;
 }
 
