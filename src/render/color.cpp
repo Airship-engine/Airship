@@ -12,42 +12,43 @@
 #endif
 
 namespace Airship {
+namespace {
+    RGBColor blendAlpha(const RGBColor &bg, const RGBColor &fg) {
+        float newA = fg.a + bg.a * (1 - fg.a);
+        if (newA < SMALL_ALPHA) return RGBColor(0.0f, 0.0f, 0.0f, 0.0f);
+        float bgScale = bg.a * (1 - fg.a) / newA;
+        float fgScale = fg.a / newA;
+        return RGBColor(
+            fg.r * fgScale + bg.r * bgScale,
+            fg.g * fgScale + bg.g * bgScale,
+            fg.b * fgScale + bg.b * bgScale,
+            newA
+        );
+    }
 
-static RGBColor blendAlpha(const RGBColor &bg, const RGBColor &fg) {
-    float newA = fg.a + bg.a * (1 - fg.a);
-    if (newA < SMALL_ALPHA) return RGBColor(0.0f, 0.0f, 0.0f, 0.0f);
-    float bgScale = bg.a * (1 - fg.a) / newA;
-    float fgScale = fg.a / newA;
-    return RGBColor(
-        fg.r * fgScale + bg.r * bgScale,
-        fg.g * fgScale + bg.g * bgScale,
-        fg.b * fgScale + bg.b * bgScale,
-        newA
-    );
-}
+    RGBColor blendMultiply(const RGBColor &bg, const RGBColor &fg) {
+        float newR = bg.r * fg.r;
+        float newG = bg.g * fg.g;
+        float newB = bg.b * fg.b;
+        float newA = bg.a * fg.a;
+        return RGBColor(newR, newG, newB, newA);
+    }
 
-static RGBColor blendMultiply(const RGBColor &bg, const RGBColor &fg) {
-    float newR = bg.r * fg.r;
-    float newG = bg.g * fg.g;
-    float newB = bg.b * fg.b;
-    float newA = bg.a * fg.a;
-    return RGBColor(newR, newG, newB, newA);
-}
+    RGBColor blendAdd(const RGBColor &bg, const RGBColor &fg) {
+        float newR = bg.r + fg.r;
+        float newG = bg.g + fg.g;
+        float newB = bg.b + fg.b;
+        float newA = std::max(bg.a, fg.a);
+        return RGBColor(newR, newG, newB, newA);
+    }
 
-static RGBColor blendAdd(const RGBColor &bg, const RGBColor &fg) {
-    float newR = bg.r + fg.r;
-    float newG = bg.g + fg.g;
-    float newB = bg.b + fg.b;
-    float newA = std::max(bg.a, fg.a);
-    return RGBColor(newR, newG, newB, newA);
-}
-
-static RGBColor blendAverage(const RGBColor &bg, const RGBColor &fg) {
-    float newR = (bg.r + fg.r) / 2;
-    float newG = (bg.g + fg.g) / 2;
-    float newB = (bg.b + fg.b) / 2;
-    float newA = std::max(bg.a, fg.a);
-    return RGBColor(newR, newG, newB, newA);
+    RGBColor blendAverage(const RGBColor &bg, const RGBColor &fg) {
+        float newR = (bg.r + fg.r) / 2;
+        float newG = (bg.g + fg.g) / 2;
+        float newB = (bg.b + fg.b) / 2;
+        float newA = std::max(bg.a, fg.a);
+        return RGBColor(newR, newG, newB, newA);
+    }
 }
 
 RGBColor RGBColor::blend(const RGBColor &bg, const RGBColor &fg, RGBColor::BlendMode mode) {
@@ -67,22 +68,24 @@ RGBColor RGBColor::lerp(const RGBColor &bg, const RGBColor &fg, float t) {
     return blend(A, B, RGBColor::BlendMode::Add);
 }
 
-static RGBColor normalizeClamp(const RGBColor &color) {
-    float newR = std::clamp(color.r, 0.0f, 1.0f);
-    float newG = std::clamp(color.g, 0.0f, 1.0f);
-    float newB = std::clamp(color.b, 0.0f, 1.0f);
-    float newA = std::clamp(color.a, 0.0f, 1.0f);
-    return RGBColor(newR, newG, newB, newA);
-}
-
-static RGBColor normalizeScale(const RGBColor &color) {
-    float div = std::max(color.r, color.g);
-    div = std::max(div, color.b);
-    float newR = color.r / div;
-    float newG = color.g / div;
-    float newB = color.b / div;
-    float newA = std::clamp(color.r, 0.0f, 1.0f);
-    return RGBColor(newR, newG, newB, newA);
+namespace {
+    RGBColor normalizeClamp(const RGBColor &color) {
+        float newR = std::clamp(color.r, 0.0f, 1.0f);
+        float newG = std::clamp(color.g, 0.0f, 1.0f);
+        float newB = std::clamp(color.b, 0.0f, 1.0f);
+        float newA = std::clamp(color.a, 0.0f, 1.0f);
+        return RGBColor(newR, newG, newB, newA);
+    }
+    
+    RGBColor normalizeScale(const RGBColor &color) {
+        float div = std::max(color.r, color.g);
+        div = std::max(div, color.b);
+        float newR = color.r / div;
+        float newG = color.g / div;
+        float newB = color.b / div;
+        float newA = std::clamp(color.r, 0.0f, 1.0f);
+        return RGBColor(newR, newG, newB, newA);
+    }
 }
 
 RGBColor RGBColor::normalize(RGBColor::NormalizeMode mode) {
