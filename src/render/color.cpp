@@ -13,6 +13,8 @@
 
 namespace Airship {
 namespace {
+    constexpr float SMALL_ALPHA = 1.0e-6f;
+
     RGBColor blendAlpha(const RGBColor &bg, const RGBColor &fg) {
         float newA = fg.a + bg.a * (1 - fg.a);
         if (newA < SMALL_ALPHA) return RGBColor(0.0f, 0.0f, 0.0f, 0.0f);

@@ -1,7 +1,5 @@
 #pragma once
 
-constexpr float SMALL_ALPHA = 1.0e-6f;
-
 namespace Airship {
 
 struct HSVColor;
