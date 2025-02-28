@@ -1,6 +1,7 @@
 #pragma once
 
 #include "core/utils.hpp"
+#include "render/color.h"
 
 #include <string>
 #include <vector>
@@ -42,6 +43,7 @@ namespace Airship {
     
     class Renderer {
     public:
+        Renderer() = default;
         using shader_id = unsigned int;
         using program_id = unsigned int;
         void init();
@@ -59,5 +61,8 @@ namespace Airship {
         void bindProgram(program_id pid);
 
         void draw(const std::vector<Mesh> &meshes);
+        void setClearColor(const RGBColor &color);
+    private:
+        Color m_ClearColor = Colors::Magenta;
     };
 } // namespace Airship
