@@ -1,29 +1,165 @@
 {
-    "version": 8,
-    "configurePresets": [
-        {
-            "name": "tests",
-            "displayName": "With tests",
-            "description": "Regular build, with tests",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "installDir": "${sourceDir}/install/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "",
-                "BUILD_TESTS": "ON"
-            }
-        },
-        {
-            "name": "no tests",
-            "displayName": "Without tests",
-            "description": "Regular build, without tests",
-            "binaryDir": "${sourceDir}/build/${presetName}",
-            "installDir": "${sourceDir}/install/${presetName}",
-            "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug",
-                "CMAKE_TOOLCHAIN_FILE": "",
-                "BUILD_TESTS": "OFF"
-            }
-        }
-    ]
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "gen:ninja",
+      "hidden": true,
+      "generator": "Ninja"
+    },
+    {
+      "name": "gen:visual-studio",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022"
+    },
+    {
+      "name": "gen:makefiles",
+      "hidden": true,
+      "generator": "Unix Makefiles"
+    },
+    {
+      "name": "comp:clang",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "cmake/clang.cmake"
+      }
+    },
+    {
+      "name": "comp:gcc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "cmake/gcc.cmake"
+      }
+    },
+    {
+      "name": "comp:msvc",
+      "hidden": true,
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "cmake/msvc.cmake"
+      }
+    },
+    {
+      "name": "root",
+      "displayName": "Root configuration used by all other presets",
+      "hidden": true,
+      "inherits": [ "gen:ninja", "comp:clang" ],
+      "cacheVariables": {
+        "CMAKE_TOOLCHAIN_FILE": "",
+        "BUILD_EXAMPLES": "ON",
+        "BUILD_TESTS": "ON",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
+      },
+      "binaryDir": "${sourceDir}/build/${presetName}",
+      "installDir": "${sourceDir}/install/${presetName}"
+    },
+    {
+      "name": "Debug",
+      "displayName": "Debug",
+      "description": "Basic Debug Build",
+      "inherits": "root",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "DebugOpt",
+      "displayName": "DebugOpt",
+      "description": "Basic Debug Build w/optimizations",
+      "inherits": "root",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug"
+      }
+    },
+    {
+      "name": "Release",
+      "displayName": "Release",
+      "description": "Basic Release Build",
+      "inherits": "root",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release"
+      }
+    },
+    {
+      "name": "Final",
+      "displayName": "Final",
+      "description": "Release Build with exe size optimizations",
+      "inherits": "root",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "lib-debug",
+      "description": "Build library",
+      "displayName": "Library (Debug)",
+      "configurePreset": "Debug",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "lib-debugopt",
+      "description": "Build library",
+      "displayName": "Library (DebugOpt)",
+      "configurePreset": "DebugOpt",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "lib-release",
+      "description": "Build library",
+      "displayName": "Library (Release)",
+      "configurePreset": "Release",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "lib-final",
+      "description": "Build library",
+      "displayName": "Library (Final)",
+      "configurePreset": "Final",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "examples-debug",
+      "description": "Build examples",
+      "displayName": "Examples + Library (Debug)",
+      "configurePreset": "Debug",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "examples-debugopt",
+      "description": "Build examples",
+      "displayName": "Examples + Library (DebugOpt)",
+      "configurePreset": "DebugOpt",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "examples-release",
+      "description": "Build examples",
+      "displayName": "Examples + Library (Release)",
+      "configurePreset": "Release",
+      "targets": [
+        "ShapesExample"
+      ]
+    },
+    {
+      "name": "examples-final",
+      "description": "Build examples",
+      "displayName": "Examples + Library (Final)",
+      "configurePreset": "Final",
+      "targets": [
+        "ShapesExample"
+      ]
+    }
+  ]
 }
