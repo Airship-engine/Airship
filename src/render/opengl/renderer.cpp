@@ -36,7 +36,7 @@ Mesh::Mesh(const std::vector<Vertex> &vertices) : m_Count(static_cast<int>(verti
 
     m_BufferArrayObject = createBuffer();
     bindBuffer();
-    copyBuffer(sizeof(vertices), vertices.data());
+    copyBuffer(vertices.size()*sizeof(Vertex), vertices.data());
 
     Vertex::setAttribData();
 }
