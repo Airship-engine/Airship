@@ -38,6 +38,7 @@ set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED true)
 option(BUILD_TESTS "Build and compile unit tests" OFF)
 option(BUILD_FOR_CI "Build a CI version of the library" OFF)
 option(OPENGL_DISABLED "Disallow the renderer to use the OpenGL API" FALSE)
+option(BUILD_EXAMPLES "Build and compile examples" OFF)
 
 if (BUILD_TESTS)
     enable_testing()
@@ -46,3 +47,8 @@ endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
+add_subdirectory(test)
+
+if (BUILD_EXAMPLES)
+    add_subdirectory(examples)
+endif()
