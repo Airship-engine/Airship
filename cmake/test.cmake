@@ -11,9 +11,10 @@ function(add_airship_test SOURCE)
         # instead of to all of them.
         target_link_libraries(${TEST_NAME}
             PRIVATE
+                AirshipRenderer
+                AirshipTest
                 core
                 gtest_main
-                AirshipRenderer
         )
         target_include_directories(${TEST_NAME}
             PRIVATE
