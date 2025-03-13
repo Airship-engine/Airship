@@ -1,18 +1,11 @@
 
 set(CORE_SOURCES
-    ${PROJECT_SOURCE_DIR}/include/core/application.h
-    ${PROJECT_SOURCE_DIR}/include/core/convar.h
-    ${PROJECT_SOURCE_DIR}/include/core/logging.h
-    ${PROJECT_SOURCE_DIR}/include/core/utils.hpp
-    ${PROJECT_SOURCE_DIR}/include/core/window.h
-    ${PROJECT_SOURCE_DIR}/include/core/event.h
     application.cpp
     event.cpp
 )
 
 set(CORE_TEST_SOURCES
     convar.test.cpp
-    logging.test.cpp
     event.test.cpp
 )
 
@@ -28,6 +21,5 @@ target_include_directories(core
 target_link_libraries(core PUBLIC spdlog glfw)
 target_compile_features(core PUBLIC cxx_std_20)
 
-foreach(TEST_SOURCE ${CORE_TEST_SOURCES})
-    add_airship_test(${TEST_SOURCE})
-endforeach()
+airship_test(core_test "${CORE_TEST_SOURCES}")
+airship_Test(logging logging.test.cpp DISABLE_ENVIRONMENT)
