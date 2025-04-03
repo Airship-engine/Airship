@@ -90,48 +90,50 @@
   ],
   "buildPresets": [
     {
+      "name": "root",
+      "description": "Root Build Configuration",
+      "hidden": true,
+      "targets": [
+        "Airship",
+        "AirshipTests"
+      ]
+    },
+    {
       "name": "lib-debug",
       "description": "Build library",
       "displayName": "Library (Debug)",
       "configurePreset": "Debug",
-      "targets": [
-        "ShapesExample"
-      ]
+      "inherits":  "root"
     },
     {
       "name": "lib-debugopt",
       "description": "Build library",
       "displayName": "Library (DebugOpt)",
       "configurePreset": "DebugOpt",
-      "targets": [
-        "ShapesExample"
-      ]
+      "inherits":  "root"
     },
     {
       "name": "lib-release",
       "description": "Build library",
       "displayName": "Library (Release)",
       "configurePreset": "Release",
-      "targets": [
-        "ShapesExample"
-      ]
+      "inherits":  "root"
     },
     {
       "name": "lib-final",
       "description": "Build library",
       "displayName": "Library (Final)",
       "configurePreset": "Final",
-      "targets": [
-        "ShapesExample"
-      ]
+      "inherits":  "root"
     },
     {
       "name": "examples-debug",
       "description": "Build examples",
       "displayName": "Examples + Library (Debug)",
       "configurePreset": "Debug",
+      "inherits":  "root",
       "targets": [
-        "ShapesExample"
+        "AirshipExamples"
       ]
     },
     {
@@ -139,8 +141,9 @@
       "description": "Build examples",
       "displayName": "Examples + Library (DebugOpt)",
       "configurePreset": "DebugOpt",
+      "inherits":  "root",
       "targets": [
-        "ShapesExample"
+        "AirshipExamples"
       ]
     },
     {
@@ -148,8 +151,9 @@
       "description": "Build examples",
       "displayName": "Examples + Library (Release)",
       "configurePreset": "Release",
+      "inherits":  "root",
       "targets": [
-        "ShapesExample"
+        "AirshipExamples"
       ]
     },
     {
@@ -157,8 +161,9 @@
       "description": "Build examples",
       "displayName": "Examples + Library (Final)",
       "configurePreset": "Final",
+      "inherits":  "root",
       "targets": [
-        "ShapesExample"
+        "AirshipExamples"
       ]
     }
   ]

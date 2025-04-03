@@ -3,8 +3,7 @@ add_executable(ShapesExample)
 
 target_link_libraries(ShapesExample
     PUBLIC
-        core
-        AirshipRenderer
+        Airship
 )
 
 target_sources(ShapesExample
