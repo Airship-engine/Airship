@@ -1,5 +1,7 @@
-# Arbitrary somewhat-recent cmake version
-cmake_minimum_required(VERSION 3.20)
+# cmake guidelines inspired by https://cliutils.gitlab.io/modern-cmake
+# minimum version 3.24 introduces a good package system, in case we need it. 
+# our default compiler
+cmake_minimum_required(VERSION 3.24)
 
 project(
     Airship

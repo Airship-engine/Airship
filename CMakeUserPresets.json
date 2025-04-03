@@ -1,0 +1,27 @@
+{
+  "version": 6,
+  "configurePresets": [
+    {
+      "name": "User",
+      "displayName": "Base User Preset",
+      "inherits": [ "DebugOpt", "gen:ninja", "comp:clang" ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "user-debugopt",
+      "description": "Build library",
+      "displayName": "Library (User)",
+      "configurePreset": "User",
+      "inherits":  "lib-debugopt"
+    },
+    {
+      "name": "user-examples-debugopt",
+      "description": "Build Examples + Library",
+      "displayName": "Examples + Library (User)",
+      "configurePreset": "User",
+      "inherits": "examples-debugopt"
+    }
+  ]
+}
+
