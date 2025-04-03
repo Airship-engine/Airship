@@ -30,4 +30,4 @@ if(NOT BUILD_FOR_CI)
 endif()
 
 airship_test(core_test "${CORE_TEST_SOURCES}")
-airship_Test(logging logging.test.cpp DISABLE_ENVIRONMENT)
+airship_test(logging logging.test.cpp DISABLE_ENVIRONMENT)
