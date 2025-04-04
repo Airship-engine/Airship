@@ -29,11 +29,11 @@ class ShipLog
 public:
 	enum class Level
 	{
-		DEBUG,
-		INFO,
-		ALERT,
-		ERROR,
-		MAYDAY
+        DEBUG,
+        INFO,
+        ALERT,
+        ERROR,
+        MAYDAY
 	};
 
 	static ShipLog& get()

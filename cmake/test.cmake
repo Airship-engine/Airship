@@ -10,7 +10,7 @@ function(airship_test TARGET_NAME SOURCE_LIST)
 
         target_link_libraries(${TARGET_NAME}
             PRIVATE
-				Airship
+                Airship
                 AirshipTest
                 gtest_main
         )
@@ -22,7 +22,7 @@ function(airship_test TARGET_NAME SOURCE_LIST)
             target_compile_definitions(${TARGET_NAME} PUBLIC DISABLE_TEST_ENVIRONMENT=1)
         endif()
         gtest_discover_tests(${TARGET_NAME})
-		add_dependencies(AirshipTests ${TARGET_NAME})
+        add_dependencies(AirshipTests ${TARGET_NAME})
 	endif()
 endfunction()
 
