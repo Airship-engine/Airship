@@ -14,6 +14,7 @@
     do { \
         x; \
         const char *description; \
+        [[maybe_unused]] \
         int code = glfwGetError(&description); \
         if (description) \
             SHIPLOG_MAYDAY("glfw error {} -> {}", code, description); \

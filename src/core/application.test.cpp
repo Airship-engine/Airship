@@ -3,13 +3,13 @@
 #include "test/common.h"
 
 TEST(Window, nonnull) {
-    GameClass app;
+    Airship::Test::GameClass app;
     app.Run();
 
     EXPECT_EQ(app.GetWindow().has_value(), true);
 }
 TEST(Window, null) {
-    GameClass app(-1, -1);
+    Airship::Test::GameClass app(-1, -1);
     app.Run();
 
     EXPECT_EQ(app.GetWindow().has_value(), false);

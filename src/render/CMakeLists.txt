@@ -14,7 +14,7 @@ endif()
 
 # Since renderer.test.cpp requires a window, skip for CI
 if(NOT BUILD_FOR_CI)
-    add_airship_test("renderer.test.cpp")
+    airship_test(renderer renderer.test.cpp)
 endif()
 
-add_airship_test("color.test.cpp")
+airship_test(color color.test.cpp)
