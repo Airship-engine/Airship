@@ -163,7 +163,8 @@ private:
 			return Level::ERROR;
 		case spdlog::level::critical:
 			return Level::MAYDAY;
-
+		default:
+			break;
 		}
 		assert("Invalid log level");
 		return Level::INFO;
