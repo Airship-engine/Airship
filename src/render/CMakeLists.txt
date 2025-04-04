@@ -17,4 +17,4 @@ if(NOT BUILD_FOR_CI)
     airship_test(renderer renderer.test.cpp)
 endif()
 
-add_airship_test("color.test.cpp")
+airship_test(color color.test.cpp)
