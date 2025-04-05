@@ -15,10 +15,10 @@ public:
 
     void SetUp() override 
     {
-		Airship::ShipLog::get().AddListener("Test Game Log", [](Airship::ShipLog::Level level, std::string_view msg) {
-			// If we ever log an error, this will cause the test to fail
-			FAIL();
-		}, Airship::ShipLog::Level::ERROR);
+        Airship::ShipLog::get().AddListener("Test Game Log", [](Airship::ShipLog::Level level, std::string_view msg) {
+            // If we ever log an error, this will cause the test to fail
+            FAIL();
+        }, Airship::ShipLog::Level::ERROR);
     }
 };
 

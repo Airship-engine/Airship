@@ -11,7 +11,7 @@ const ::testing::Environment* airship_environment = ::testing::AddGlobalTestEnvi
 
 void Airship::Test::GameClass::OnStart()
 {
-	win = CreateWindow(width, height, "test app");
+    win = CreateWindow(width, height, "test app");
 }
 
 } // namespace Test

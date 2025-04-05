@@ -23,7 +23,7 @@ function(airship_test TARGET_NAME SOURCE_LIST)
         endif()
         gtest_discover_tests(${TARGET_NAME})
         add_dependencies(AirshipTests ${TARGET_NAME})
-	endif()
+    endif()
 endfunction()
 
 if(BUILD_TESTS)

@@ -1,7 +1,7 @@
 include(${CMAKE_SOURCE_DIR}/cmake/test.cmake)
 
 if(BUILD_TESTS)
-	add_custom_target(AirshipTests)
+    add_custom_target(AirshipTests)
 endif()
 
 add_subdirectory(core)
