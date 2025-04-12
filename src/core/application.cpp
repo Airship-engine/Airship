@@ -13,6 +13,8 @@ void Application::Run() {
 }
 
 Application::~Application() {
+    m_Windows.clear();
+
     GLFW_CHECK(glfwTerminate());
 }
 

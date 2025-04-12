@@ -18,5 +18,6 @@ add_subdirectory(glfw)
 
 if (NOT OPENGL_DISABLED)
     # Add gl3w - generated files added to the build/ directory
+    set(OpenGL_GL_PREFERENCE LEGACY)
     add_subdirectory(gl3w)
 endif()

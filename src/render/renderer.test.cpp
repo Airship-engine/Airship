@@ -6,7 +6,7 @@
 
 TEST(Renderer, Init) {
     // Use Application code to handle getting a window
-    GameClass app;
+    Airship::Test::GameClass app;
     app.Run();
 
     // We have a window, and it'll only be destroyed when app goes out of scope

@@ -8,6 +8,7 @@
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
+#include "spdlog/sinks/callback_sink.h"
 #include "spdlog/spdlog.h"
 
 #include <map>
@@ -23,10 +24,11 @@
 namespace Airship
 {
 
-class ShipLog 
+class ShipLog
 {
-public: 
-    enum class Level {
+public:
+    enum class Level
+    {
         DEBUG,
         INFO,
         ALERT,
@@ -34,15 +36,17 @@ public:
         MAYDAY
     };
 
-    static ShipLog& get() {
+    static ShipLog& get()
+    {
         static ShipLog log;
         return log;
     }
 
-    ShipLog() 
+    ShipLog()
     {
         auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         consoleSink->set_level(spdlog::level::info);
+        m_ActiveSinks.emplace("default_log", consoleSink);
 
         m_Logger = std::make_shared<spdlog::logger>("airship", consoleSink);
         m_Logger->enable_backtrace(32);
@@ -53,12 +57,12 @@ public:
         spdlog::register_logger(m_Logger);
     }
 
-    spdlog::logger* GetLogger() 
+    spdlog::logger* GetLogger()
     {
         return m_Logger.get();
     }
 
-    bool AddFileOutput(const std::string& name, const std::string& filename, Level level) 
+    bool AddFileOutput(const std::string& name, const std::string& filename, Level level)
     {
         if (m_ActiveSinks.contains(name))
             return false;
@@ -73,9 +77,27 @@ public:
         return true;
     }
 
-    bool RemoveOutput(const std::string& name)
+    bool AddListener(const std::string& name, std::function<void(Level level, const std::string_view)> listener, Level level)
     {
-        if(!m_ActiveSinks.contains(name))
+        if (m_ActiveSinks.contains(name))
+            return false;
+
+        auto [it, sinkAdded] = m_ActiveSinks.emplace(name, std::make_shared<spdlog::sinks::callback_sink_mt>([listener](const spdlog::details::log_msg &msg)
+            { 
+                listener(FromSpdLog(msg.level), msg.payload);
+            }));
+        if (!sinkAdded)
+            return false;
+
+        std::shared_ptr<spdlog::sinks::sink> newSink = it->second;
+        newSink->set_level(ToSpdLog(level));
+        m_Logger->sinks().push_back(std::move(newSink));
+        return true;
+    }
+
+    bool RemoveOutput(const std::string &name)
+    {
+        if (!m_ActiveSinks.contains(name))
             return false;
 
         auto it = m_ActiveSinks.find(name);
@@ -86,11 +108,11 @@ public:
         return true;
     }
 
-    bool SetLevel(const std::string& name, Level level) 
+    bool SetLevel(const std::string &name, Level level)
     {
         if (!m_ActiveSinks.contains(name))
             return false;
-        
+
         m_ActiveSinks.at(name)->set_level(ToSpdLog(level));
         return true;
     }
@@ -108,21 +130,44 @@ public:
 private:
     constexpr static spdlog::level::level_enum ToSpdLog(Level shipLogLevel)
     {
-        switch (shipLogLevel) 
+        switch (shipLogLevel)
         {
-            case Level::DEBUG: 
-                return spdlog::level::debug;
-            case Level::INFO: 
-                return spdlog::level::info;
-            case Level::ALERT: 
-                return spdlog::level::warn;
-            case Level::ERROR: 
-                return spdlog::level::err;
-            case Level::MAYDAY: 
-                return spdlog::level::critical;
+        case Level::DEBUG:
+            return spdlog::level::debug;
+        case Level::INFO:
+            return spdlog::level::info;
+        case Level::ALERT:
+            return spdlog::level::warn;
+        case Level::ERROR:
+            return spdlog::level::err;
+        case Level::MAYDAY:
+            return spdlog::level::critical;
         }
         assert(false);
         return spdlog::level::info;
+    }
+
+    constexpr static Level FromSpdLog(spdlog::level::level_enum level)
+    {
+        switch (level)
+        {
+        case spdlog::level::trace:
+            [[fallthrough]];
+        case spdlog::level::debug:
+            return Level::DEBUG;
+        case spdlog::level::info:
+            return Level::INFO;
+        case spdlog::level::warn:
+            return Level::ALERT;
+        case spdlog::level::err:
+            return Level::ERROR;
+        case spdlog::level::critical:
+            return Level::MAYDAY;
+        default:
+            break;
+        }
+        assert("Invalid log level");
+        return Level::INFO;
     }
 
     std::shared_ptr<spdlog::logger> m_Logger;
