@@ -112,39 +112,62 @@
       ]
     },
     {
+      "name": "build-debug",
+      "description": "Base Debug Build Configuration",
+      "hidden": true,
+      "inherits": "root",
+      "configurePreset": "Debug"
+    },
+    {
+      "name": "build-debugopt",
+      "description": "Base DebugOpt Build Configuration",
+      "hidden": true,
+      "inherits": "root",
+      "configurePreset": "DebugOpt"
+    },
+    {
+      "name": "build-release",
+      "description": "Base Release Build Configuration",
+      "hidden": true,
+      "inherits": "root",
+      "configurePreset": "Release"
+    },
+    {
+      "name": "build-final",
+      "description": "Base Final Build Configuration",
+      "hidden": true,
+      "inherits": "root",
+      "configurePreset": "Final"
+    },
+    {
       "name": "lib-debug",
       "description": "Build library",
       "displayName": "Library (Debug)",
-      "configurePreset": "Debug",
-      "inherits":  "root"
+      "inherits":  "build-debug"
     },
     {
       "name": "lib-debugopt",
       "description": "Build library",
       "displayName": "Library (DebugOpt)",
-      "configurePreset": "DebugOpt",
-      "inherits":  "root"
+      "inherits":  "build-debugopt"
     },
     {
       "name": "lib-release",
       "description": "Build library",
       "displayName": "Library (Release)",
-      "configurePreset": "Release",
-      "inherits":  "root"
+      "inherits":  "build-release"
     },
     {
       "name": "lib-final",
       "description": "Build library",
       "displayName": "Library (Final)",
-      "configurePreset": "Final",
-      "inherits":  "root"
+      "inherits":  "build-final"
     },
     {
       "name": "examples-debug",
       "description": "Build examples",
       "displayName": "Examples + Library (Debug)",
-      "configurePreset": "Debug",
-      "inherits":  "root",
+      "inherits":  "build-debug",
       "targets": [
         "AirshipExamples"
       ]
@@ -153,8 +176,7 @@
       "name": "examples-debugopt",
       "description": "Build examples",
       "displayName": "Examples + Library (DebugOpt)",
-      "configurePreset": "DebugOpt",
-      "inherits":  "root",
+      "inherits":  "build-debugopt",
       "targets": [
         "AirshipExamples"
       ]
@@ -163,8 +185,7 @@
       "name": "examples-release",
       "description": "Build examples",
       "displayName": "Examples + Library (Release)",
-      "configurePreset": "Release",
-      "inherits":  "root",
+      "inherits":  "build-release",
       "targets": [
         "AirshipExamples"
       ]
@@ -173,8 +194,7 @@
       "name": "examples-final",
       "description": "Build examples",
       "displayName": "Examples + Library (Final)",
-      "configurePreset": "Final",
-      "inherits":  "root",
+      "inherits":  "build-final",
       "targets": [
         "AirshipExamples"
       ]
