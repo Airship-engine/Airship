@@ -37,18 +37,18 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(GLOBAL PROPERTY CXX_STANDARD 20)
 set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED true)
 
-option(BUILD_TESTS "Build and compile unit tests" OFF)
 option(BUILD_FOR_CI "Build a CI version of the library" OFF)
 option(OPENGL_DISABLED "Disallow the renderer to use the OpenGL API" FALSE)
 
+option(BUILD_TESTS "Build and compile unit tests" ON)
 if (BUILD_TESTS)
     enable_testing()
     include(CTest)
+    add_subdirectory(tests)
 endif()
 
 add_subdirectory(external)
 add_subdirectory(src)
-add_subdirectory(test)
 
 option(BUILD_EXAMPLES "Build and compile examples" ON)
 if (BUILD_EXAMPLES)

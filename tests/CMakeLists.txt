@@ -31,3 +31,6 @@ function(airship_test TARGET_NAME SOURCE_LIST)
 endfunction()
 
 add_subdirectory(src/test)
+add_subdirectory(src/core)
+add_subdirectory(src/render)
+

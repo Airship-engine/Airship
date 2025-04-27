@@ -11,10 +11,3 @@ if (NOT OPENGL_DISABLED)
 else()
     message(FATAL_ERROR "Only the OpenGL renderer is supported.")
 endif()
-
-# Since renderer.test.cpp requires a window, skip for CI
-if(NOT BUILD_FOR_CI)
-    airship_test(renderer renderer.test.cpp)
-endif()
-
-airship_test(color color.test.cpp)
