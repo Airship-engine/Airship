@@ -1,7 +1,3 @@
-if(BUILD_TESTS)
-    add_custom_target(AirshipTests)
-endif()
-
 add_subdirectory(core)
 add_subdirectory(render)
 
