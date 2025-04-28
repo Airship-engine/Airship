@@ -48,7 +48,7 @@ if (BUILD_TESTS)
 endif()
 
 add_subdirectory(external)
-add_subdirectory(src)
+add_subdirectory(lib)
 
 option(BUILD_EXAMPLES "Build and compile examples" ON)
 if (BUILD_EXAMPLES)

@@ -2,7 +2,8 @@
 add_library(AirshipRenderer)
 target_include_directories(AirshipRenderer
     PUBLIC
-        ${PROJECT_SOURCE_DIR}/include
+        $<INSTALL_INTERFACE:include>
+        $<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/lib/include>
 )
 target_sources(AirshipRenderer PUBLIC color.cpp)
 
