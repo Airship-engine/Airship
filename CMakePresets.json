@@ -49,155 +49,383 @@
       "installDir": "${sourceDir}/install/${presetName}"
     },
     {
-      "name": "build:examples",
-      "displayName": "Configures the build to include examples in the build configuration",
-      "hidden": true,
-      "cacheVariables": {
-        "BUILD_EXAMPLES": "ON"
-      }
-    },
-    {
-      "name": "build:tests",
-      "displayName": "Configures the build to include airship tests in the build configuration",
-      "hidden": true,
-      "cacheVariables": {
-        "BUILD_TESTS": "ON"
-      }
-    },
-    {
-      "name": "Debug",
-      "displayName": "Debug",
+      "name": "debug",
+      "displayName": "Default Debug",
       "description": "Basic Debug Build",
-      "inherits": [ "root", "build:tests", "build:examples" ],
+      "inherits": "root",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "DebugOpt",
-      "displayName": "DebugOpt",
+      "name": "debugOpt",
+      "displayName": "Default DebugOpt",
       "description": "Basic Debug Build w/optimizations",
-      "inherits": [ "root", "build:tests", "build:examples" ],
+      "inherits": "root",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
-      "name": "Release",
-      "displayName": "Release",
+      "name": "release",
+      "displayName": "Default Release",
       "description": "Basic Release Build",
-      "inherits": [ "root", "build:tests", "build:examples" ],
+      "inherits": "root",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }
     },
     {
-      "name": "Final",
-      "displayName": "Final",
-      "description": "Release Build with exe size optimizations",
-      "inherits": [ "root", "build:tests", "build:examples" ],
-      "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "MinSizeRel"
-      }
+        "name": "final",
+        "displayName": "Default Final",
+        "description": "Release Build with exe size optimizations",
+        "inherits": "root",
+        "cacheVariables": {
+            "CMAKE_BUILD_TYPE": "MinSizeRel"
+        }
+    },
+    {
+        "name": "ninja-debug",
+        "displayName": "Ninja Debug",
+        "inherits": [
+            "debug",
+            "gen:ninja"
+        ]
+    },
+    {
+        "name": "ninja-debugOpt",
+        "displayName": "Ninja DebugOpt",
+        "inherits": [
+            "debugOpt",
+            "gen:ninja"
+        ]
+    },
+    {
+        "name": "ninja-release",
+        "displayName": "Ninja Release",
+        "inherits": [
+            "release",
+            "gen:ninja"
+        ]
+    },
+    {
+        "name": "ninja-final",
+        "displayName": "Ninja Final",
+        "inherits": [
+            "final",
+            "gen:ninja"
+        ]
+    },
+    {
+        "name": "vs-debug",
+        "displayName": "VS Debug",
+        "inherits": [
+            "debug",
+            "gen:visual-studio"
+        ]
+    },
+    {
+        "name": "vs-debugOpt",
+        "displayName": "VS DebugOpt",
+        "inherits": [
+            "debugOpt",
+            "gen:visual-studio"
+        ]
+    },
+    {
+        "name": "vs-release",
+        "displayName": "VS Release",
+        "inherits": [
+            "release",
+            "gen:visual-studio"
+        ]
+    },
+    {
+        "name": "vs-final",
+        "displayName": "VS Final",
+        "inherits": [
+            "final",
+            "gen:visual-studio"
+        ]
+    },
+    {
+        "name": "make-debug",
+        "displayName": "Make Debug",
+        "inherits": [
+            "debug",
+            "gen:makefiles"
+        ]
+    },
+    {
+        "name": "make-debugOpt",
+        "displayName": "Make DebugOpt",
+        "inherits": [
+            "debugOpt",
+            "gen:makefiles"
+        ]
+    },
+    {
+        "name": "make-release",
+        "displayName": "Make Release",
+        "inherits": [
+            "release",
+            "gen:makefiles"
+        ]
+    },
+    {
+        "name": "make-final",
+        "displayName": "Make Final",
+        "inherits": [
+            "final",
+            "gen:makefiles"
+        ]
     }
   ],
   "buildPresets": [
     {
       "name": "root",
       "description": "Root Build Configuration",
+      "hidden": true
+    },
+    {
+      "name": "lib",
+      "inherits": "root",
       "hidden": true,
       "targets": [
-        "Airship",
-        "AirshipTests"
+        "Airship"
       ]
     },
     {
-      "name": "build-debug",
-      "description": "Base Debug Build Configuration",
-      "hidden": true,
+      "name": "tgt-examples",
       "inherits": "root",
-      "configurePreset": "Debug"
-    },
-    {
-      "name": "build-debugopt",
-      "description": "Base DebugOpt Build Configuration",
       "hidden": true,
-      "inherits": "root",
-      "configurePreset": "DebugOpt"
-    },
-    {
-      "name": "build-release",
-      "description": "Base Release Build Configuration",
-      "hidden": true,
-      "inherits": "root",
-      "configurePreset": "Release"
-    },
-    {
-      "name": "build-final",
-      "description": "Base Final Build Configuration",
-      "hidden": true,
-      "inherits": "root",
-      "configurePreset": "Final"
-    },
-    {
-      "name": "lib-debug",
-      "description": "Build library",
-      "displayName": "Library (Debug)",
-      "inherits":  "build-debug"
-    },
-    {
-      "name": "lib-debugopt",
-      "description": "Build library",
-      "displayName": "Library (DebugOpt)",
-      "inherits":  "build-debugopt"
-    },
-    {
-      "name": "lib-release",
-      "description": "Build library",
-      "displayName": "Library (Release)",
-      "inherits":  "build-release"
-    },
-    {
-      "name": "lib-final",
-      "description": "Build library",
-      "displayName": "Library (Final)",
-      "inherits":  "build-final"
-    },
-    {
-      "name": "examples-debug",
-      "description": "Build examples",
-      "displayName": "Examples + Library (Debug)",
-      "inherits":  "build-debug",
       "targets": [
         "AirshipExamples"
       ]
     },
     {
-      "name": "examples-debugopt",
-      "description": "Build examples",
-      "displayName": "Examples + Library (DebugOpt)",
-      "inherits":  "build-debugopt",
-      "targets": [
-        "AirshipExamples"
-      ]
+      "name": "debug-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "debug"
     },
     {
-      "name": "examples-release",
+      "name": "debug-examples",
       "description": "Build examples",
-      "displayName": "Examples + Library (Release)",
-      "inherits":  "build-release",
-      "targets": [
-        "AirshipExamples"
-      ]
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "debug"
     },
     {
-      "name": "examples-final",
+      "name": "debugopt-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "debugOpt"
+    },
+    {
+      "name": "debugopt-examples",
       "description": "Build examples",
-      "displayName": "Examples + Library (Final)",
-      "inherits":  "build-final",
-      "targets": [
-        "AirshipExamples"
-      ]
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "debugOpt"
+    },
+    {
+      "name": "release-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "release"
+    },
+    {
+      "name": "release-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "release"
+    },
+    {
+      "name": "final-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "final"
+    },
+    {
+      "name": "final-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "final"
+    },
+    {
+      "name": "ninja-debug-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "ninja-debug"
+    },
+    {
+      "name": "ninja-debug-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "ninja-debug"
+    },
+    {
+      "name": "ninja-debugopt-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "ninja-debugOpt"
+    },
+    {
+      "name": "ninja-debugopt-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "ninja-debugOpt"
+    },
+    {
+      "name": "ninja-release-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "ninja-release"
+    },
+    {
+      "name": "ninja-release-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "ninja-release"
+    },
+    {
+      "name": "ninja-final-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "ninja-final"
+    },
+    {
+      "name": "ninja-final-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "ninja-final"
+    },
+    {
+      "name": "vs-debug-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "vs-debug"
+    },
+    {
+      "name": "vs-debug-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "vs-debug"
+    },
+    {
+      "name": "vs-debugopt-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "vs-debugOpt"
+    },
+    {
+      "name": "vs-debugopt-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "vs-debugOpt"
+    },
+    {
+      "name": "vs-release-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "vs-release"
+    },
+    {
+      "name": "vs-release-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "vs-release"
+    },
+    {
+      "name": "vs-final-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "vs-final"
+    },
+    {
+      "name": "vs-final-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "vs-final"
+    },
+    {
+      "name": "make-debug-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "make-debug"
+    },
+    {
+      "name": "make-debug-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "make-debug"
+    },
+    {
+      "name": "make-debugopt-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "make-debugOpt"
+    },
+    {
+      "name": "make-debugopt-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "make-debugOpt"
+    },
+    {
+      "name": "make-release-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "make-release"
+    },
+    {
+      "name": "make-release-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "make-release"
+    },
+    {
+      "name": "make-final-lib",
+      "description": "Build library",
+      "displayName": "Library",
+      "inherits": "lib",
+      "configurePreset": "make-final"
+    },
+    {
+      "name": "make-final-examples",
+      "description": "Build examples",
+      "displayName": "Examples",
+      "inherits": "tgt-examples",
+      "configurePreset": "make-final"
     }
   ]
 }
