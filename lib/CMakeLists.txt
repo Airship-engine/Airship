@@ -1,5 +1,5 @@
-add_subdirectory(src/core)
-add_subdirectory(src/render)
+add_subdirectory(core)
+add_subdirectory(render)
 
 add_library(Airship)
 
