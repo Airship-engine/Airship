@@ -7,49 +7,24 @@
       "generator": "Ninja"
     },
     {
-      "name": "gen:visual-studio",
-      "hidden": true,
-      "generator": "Visual Studio 17 2022"
-    },
-    {
-      "name": "gen:makefiles",
-      "hidden": true,
-      "generator": "Unix Makefiles"
-    },
-    {
       "name": "comp:clang",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake"
-      }
-    },
-    {
-      "name": "comp:gcc",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/gcc.cmake"
-      }
-    },
-    {
-      "name": "comp:msvc",
-      "hidden": true,
-      "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/msvc.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake",
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       }
     },
     {
       "name": "root",
       "displayName": "Root configuration used by all other presets",
       "hidden": true,
-      "cacheVariables": {
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
-      },
+      "inherits":  ["gen:ninja", "comp:clang"],
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}"
     },
     {
       "name": "debug",
-      "displayName": "Default Debug",
+      "displayName": "Debug",
       "description": "Basic Debug Build",
       "inherits": "root",
       "cacheVariables": {
@@ -58,7 +33,7 @@
     },
     {
       "name": "debugOpt",
-      "displayName": "Default DebugOpt",
+      "displayName": "DebugOpt",
       "description": "Basic Debug Build w/optimizations",
       "inherits": "root",
       "cacheVariables": {
@@ -67,7 +42,7 @@
     },
     {
       "name": "release",
-      "displayName": "Default Release",
+      "displayName": "Release",
       "description": "Basic Release Build",
       "inherits": "root",
       "cacheVariables": {
@@ -75,109 +50,13 @@
       }
     },
     {
-        "name": "final",
-        "displayName": "Default Final",
-        "description": "Release Build with exe size optimizations",
-        "inherits": "root",
-        "cacheVariables": {
-            "CMAKE_BUILD_TYPE": "MinSizeRel"
-        }
-    },
-    {
-        "name": "ninja-debug",
-        "displayName": "Ninja Debug",
-        "inherits": [
-            "debug",
-            "gen:ninja"
-        ]
-    },
-    {
-        "name": "ninja-debugOpt",
-        "displayName": "Ninja DebugOpt",
-        "inherits": [
-            "debugOpt",
-            "gen:ninja"
-        ]
-    },
-    {
-        "name": "ninja-release",
-        "displayName": "Ninja Release",
-        "inherits": [
-            "release",
-            "gen:ninja"
-        ]
-    },
-    {
-        "name": "ninja-final",
-        "displayName": "Ninja Final",
-        "inherits": [
-            "final",
-            "gen:ninja"
-        ]
-    },
-    {
-        "name": "vs-debug",
-        "displayName": "VS Debug",
-        "inherits": [
-            "debug",
-            "gen:visual-studio"
-        ]
-    },
-    {
-        "name": "vs-debugOpt",
-        "displayName": "VS DebugOpt",
-        "inherits": [
-            "debugOpt",
-            "gen:visual-studio"
-        ]
-    },
-    {
-        "name": "vs-release",
-        "displayName": "VS Release",
-        "inherits": [
-            "release",
-            "gen:visual-studio"
-        ]
-    },
-    {
-        "name": "vs-final",
-        "displayName": "VS Final",
-        "inherits": [
-            "final",
-            "gen:visual-studio"
-        ]
-    },
-    {
-        "name": "make-debug",
-        "displayName": "Make Debug",
-        "inherits": [
-            "debug",
-            "gen:makefiles"
-        ]
-    },
-    {
-        "name": "make-debugOpt",
-        "displayName": "Make DebugOpt",
-        "inherits": [
-            "debugOpt",
-            "gen:makefiles"
-        ]
-    },
-    {
-        "name": "make-release",
-        "displayName": "Make Release",
-        "inherits": [
-            "release",
-            "gen:makefiles"
-        ]
-    },
-    {
-        "name": "make-final",
-        "displayName": "Make Final",
-        "inherits": [
-            "final",
-            "gen:makefiles"
-        ]
+      "name": "final",
+      "displayName": "Final",
+      "description": "Release Build with exe size optimizations",
+      "inherits": "root",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "MinSizeRel"
+      }
     }
   ],
   "buildPresets": [
@@ -258,174 +137,6 @@
       "displayName": "Examples",
       "inherits": "tgt-examples",
       "configurePreset": "final"
-    },
-    {
-      "name": "ninja-debug-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "ninja-debug"
-    },
-    {
-      "name": "ninja-debug-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "ninja-debug"
-    },
-    {
-      "name": "ninja-debugopt-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "ninja-debugOpt"
-    },
-    {
-      "name": "ninja-debugopt-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "ninja-debugOpt"
-    },
-    {
-      "name": "ninja-release-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "ninja-release"
-    },
-    {
-      "name": "ninja-release-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "ninja-release"
-    },
-    {
-      "name": "ninja-final-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "ninja-final"
-    },
-    {
-      "name": "ninja-final-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "ninja-final"
-    },
-    {
-      "name": "vs-debug-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "vs-debug"
-    },
-    {
-      "name": "vs-debug-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "vs-debug"
-    },
-    {
-      "name": "vs-debugopt-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "vs-debugOpt"
-    },
-    {
-      "name": "vs-debugopt-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "vs-debugOpt"
-    },
-    {
-      "name": "vs-release-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "vs-release"
-    },
-    {
-      "name": "vs-release-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "vs-release"
-    },
-    {
-      "name": "vs-final-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "vs-final"
-    },
-    {
-      "name": "vs-final-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "vs-final"
-    },
-    {
-      "name": "make-debug-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "make-debug"
-    },
-    {
-      "name": "make-debug-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "make-debug"
-    },
-    {
-      "name": "make-debugopt-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "make-debugOpt"
-    },
-    {
-      "name": "make-debugopt-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "make-debugOpt"
-    },
-    {
-      "name": "make-release-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "make-release"
-    },
-    {
-      "name": "make-release-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "make-release"
-    },
-    {
-      "name": "make-final-lib",
-      "description": "Build library",
-      "displayName": "Library",
-      "inherits": "lib",
-      "configurePreset": "make-final"
-    },
-    {
-      "name": "make-final-examples",
-      "description": "Build examples",
-      "displayName": "Examples",
-      "inherits": "tgt-examples",
-      "configurePreset": "make-final"
     }
   ]
 }
