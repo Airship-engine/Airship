@@ -20,21 +20,21 @@
       "name": "comp:clang",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/clang.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake"
       }
     },
     {
       "name": "comp:gcc",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/gcc.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/gcc.cmake"
       }
     },
     {
       "name": "comp:msvc",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/msvc.cmake"
+        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/msvc.cmake"
       }
     },
     {
@@ -42,8 +42,7 @@
       "displayName": "Root configuration used by all other presets",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "1"
+        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
       },
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}"

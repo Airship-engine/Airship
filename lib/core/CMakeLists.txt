@@ -9,9 +9,9 @@ target_include_directories(core
         $<INSTALL_INTERFACE:include>
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
     PRIVATE
-        ${CMAKE_CURRENT_SOURCE_DIR}
+        ${CMAKE_CURRENT_SOURCE_DIR}/src
 )
-target_link_libraries(core PUBLIC spdlog glfw)
+target_link_libraries(core PUBLIC spdlog glfw AirshipCommonFlags)
 target_compile_features(core PUBLIC cxx_std_20)
 target_compile_options(core PRIVATE
   $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
