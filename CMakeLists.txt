@@ -9,6 +9,9 @@ project(
     DESCRIPTION "Beginnings of a game engine"
 )
 
+# We require c++20 across this whole project
+add_library(AirshipCommonFlags INTERFACE)
+target_compile_features(AirshipCommonFlags INTERFACE cxx_std_20)
 # Check for minimum compiler versions
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 13+ required for std::format

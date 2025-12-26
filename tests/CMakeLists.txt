@@ -15,12 +15,13 @@ function(airship_test TARGET_NAME SOURCE_LIST)
 
         target_link_libraries(${TARGET_NAME}
             PRIVATE
+                AirshipCommonFlags
                 AirshipTestUtils
                 ${airship_test_DEPENDS}
         )
         target_include_directories(${TARGET_NAME}
             PRIVATE
-                ${PROJECT_SOURCE_DIR}/test/include
+                ${PROJECT_SOURCE_DIR}/tests/include
         )
         if(airship_test_DISABLE_ENVIRONMENT)
             target_compile_definitions(${TARGET_NAME} PUBLIC DISABLE_TEST_ENVIRONMENT=1)
