@@ -1,7 +1,7 @@
 // #include "core/application.h"
 #include "gtest/gtest.h"
 #include "core/logging.h"
-#include "render/renderer.h"
+#include "render/opengl/renderer.h"
 #include "test/common.h"
 
 TEST(Renderer, Init) {

@@ -9,6 +9,9 @@ project(
     DESCRIPTION "Beginnings of a game engine"
 )
 
+# We require c++20 across this whole project
+add_library(AirshipCommonFlags INTERFACE)
+target_compile_features(AirshipCommonFlags INTERFACE cxx_std_20)
 # Check for minimum compiler versions
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 13+ required for std::format
@@ -37,20 +40,20 @@ set(CMAKE_SUPPRESS_REGENERATION true)
 set_property(GLOBAL PROPERTY CXX_STANDARD 20)
 set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED true)
 
-option(BUILD_TESTS "Build and compile unit tests" OFF)
 option(BUILD_FOR_CI "Build a CI version of the library" OFF)
 option(OPENGL_DISABLED "Disallow the renderer to use the OpenGL API" FALSE)
-option(BUILD_EXAMPLES "Build and compile examples" OFF)
 
+option(BUILD_TESTS "Build and compile unit tests" ON)
 if (BUILD_TESTS)
     enable_testing()
     include(CTest)
+    add_subdirectory(tests)
 endif()
 
 add_subdirectory(external)
-add_subdirectory(src)
-add_subdirectory(test)
+add_subdirectory(lib)
 
+option(BUILD_EXAMPLES "Build and compile examples" ON)
 if (BUILD_EXAMPLES)
-    add_subdirectory(examples)
+    add_subdirectory(examples EXCLUDE_FROM_ALL)
 endif()
