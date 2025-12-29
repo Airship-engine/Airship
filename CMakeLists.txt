@@ -9,6 +9,8 @@ project(
     DESCRIPTION "Beginnings of a game engine"
 )
 
+MESSAGE(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+
 # We require c++20 across this whole project
 add_library(AirshipCommonFlags INTERFACE)
 target_compile_features(AirshipCommonFlags INTERFACE cxx_std_20)
