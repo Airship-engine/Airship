@@ -34,7 +34,6 @@ else()
     message(FATAL_ERROR "Unsupported Compiler. Use GCC, Clang, or MSVC")
 endif()
 
-
 # Remove the unused ZERO_CHECK build target
 set(CMAKE_SUPPRESS_REGENERATION true)
 
