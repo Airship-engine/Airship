@@ -75,12 +75,12 @@ public:
         return *this;
     }
 
-    auto operator<=>(value_type val) const
+    auto operator<=>(const value_type& val) const
     {
         return m_Value <=> val;
     }
 
-    bool operator==(value_type val) const
+    bool operator==(const value_type& val) const
     {
         return m_Value == val;
     }

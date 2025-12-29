@@ -1,7 +1,6 @@
 #include "core/logging.h"
 #include "gtest/gtest.h"
 
-#include <cstdio>
 #include <fstream>
 #include <filesystem>
 #include <sstream>
@@ -13,21 +12,26 @@
 // Windows leaks a define for ERROR that clashes with log levels. We might need to
 // rename our log levels as lowercase if we need windows.h elsewhere. This is a workaround.
 #define NOGDI
-#include <windows.h>
-std::string create_temp_file() {
-    char temp_path[MAX_PATH + 1];
-    DWORD path_len = GetTempPathA(MAX_PATH + 1, temp_path);
-    if (path_len == 0 || path_len > MAX_PATH + 1) {
-        throw std::runtime_error("Error getting temporary path.");
+#define NOMINMAX
+#include <fileapi.h>
+#include <minwindef.h>
+#include <array>
+namespace {
+    std::string create_temp_file() {
+        std::array<char, MAX_PATH+1> temp_path{};
+        DWORD path_len = GetTempPathA(temp_path.size(), temp_path.data());
+        if (path_len == 0 || path_len > MAX_PATH + 1) {
+            throw std::runtime_error("Error getting temporary path.");
+        }
+    
+        std::array<char, MAX_PATH+1> temp_filename{};
+        UINT unique_int = GetTempFileNameA(temp_path.data(), "tmp", 0, temp_filename.data());
+        if (unique_int == 0) {
+             throw std::runtime_error("Error getting temporary file name.");
+        }
+        return std::string(temp_filename.data());
     }
-
-    char temp_file_name[MAX_PATH + 1];
-    UINT unique_int = GetTempFileNameA(temp_path, "tmp", 0, temp_file_name);
-    if (unique_int == 0) {
-         throw std::runtime_error("Error getting temporary file name.");
-    }
-    return temp_file_name;
-}
+} // anonymous namespace
 #else
 #include <unistd.h>
 #include <cerrno>
