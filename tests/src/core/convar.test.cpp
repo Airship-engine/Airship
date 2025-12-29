@@ -1,6 +1,8 @@
 #include "core/convar.h"
 #include "test/common.h"
 #include "gtest/gtest.h"
+#include <optional>
+#include <string>
 
 constexpr const char* param0Name = "myParam";
 constexpr const char* param1Name = "otherParam";
@@ -17,17 +19,17 @@ TEST(Convar, Basic) {
     EXPECT_EQ(convarA, -3);
     EXPECT_LT(convarA, -2);
 
-    Airship::Convar<std::string> convarB("Test string");
+    const Airship::Convar<std::string> convarB("Test string");
     EXPECT_GT(convarB, "S");
     EXPECT_EQ(convarB, "Test string");
     EXPECT_LT(convarB, "U");
 
-    Airship::Convar<float> convarC(1.234);
+    const Airship::Convar<float> convarC(1.234);
     EXPECT_GT(convarC, 0.5);
     EXPECT_EQ(convarC, 1.234);
     EXPECT_LT(convarC, 2);
 
-    Airship::Convar<bool> convarD(false);
+    const Airship::Convar<bool> convarD(false);
     EXPECT_GE(convarD, false);
     EXPECT_EQ(convarD, false);
     EXPECT_LT(convarD, true);
@@ -40,30 +42,45 @@ TEST(Convar, Registry) {
     EXPECT_EQ(registry.read<int>(param0Name), std::nullopt);
     EXPECT_EQ(registry.read<bool>("InvalidConvarKey"), std::nullopt);
 
-
     // Test how values change when a key is registered
     Airship::Convar<int>* myParam = registry.RegisterKey(param0Name, 2);
     EXPECT_EQ(registry.size(), 1);
-    ASSERT_EQ(registry.read<int>(param0Name).has_value(), true);
-    EXPECT_EQ(*registry.read<int>(param0Name).value(), 2);
+    if (auto var = registry.read<int>(param0Name); var.has_value()) {
+        EXPECT_EQ(*var.value(), 2);
+    } else {
+        FAIL() << "Expected to find registered integer convar key";
+    }
     EXPECT_EQ(registry.read<float>(param0Name), std::nullopt);
     EXPECT_EQ(registry.read<bool>("InvalidConvarKey"), std::nullopt);
 
     // Test adding a key to a non-empty registry
-    Airship::Convar<bool>* otherParam = registry.RegisterKey(param1Name, true);
+    registry.RegisterKey(param1Name, true);
     EXPECT_EQ(registry.size(), 2);
-    ASSERT_EQ(registry.read<int>(param0Name).has_value(), true);
-    EXPECT_EQ(*registry.read<int>(param0Name).value(), 2);
+    if (auto var = registry.read<int>(param0Name); var.has_value()) {
+        EXPECT_EQ(*var.value(), 2);
+    } else {
+        FAIL() << "Expected to find registered integer convar key";
+    }
     EXPECT_EQ(registry.read<float>(param0Name), std::nullopt);
-    ASSERT_EQ(registry.read<bool>(param1Name).has_value(), true);
-    EXPECT_EQ(*registry.read<bool>(param1Name).value(), true);
+    if (auto var = registry.read<bool>(param1Name); var.has_value()) {
+        EXPECT_EQ(*var.value(), true);
+    } else {
+        FAIL() << "Expected to find registered boolean convar key";
+    }
 
     // Test changes to the registry when a convar is changed
     *myParam = 3;
-    ASSERT_EQ(registry.read<int>(param0Name).has_value(), true);
-    EXPECT_EQ(*registry.read<int>(param0Name).value(), 3);
+    if (auto var = registry.read<int>(param0Name); var.has_value()) {
+        EXPECT_EQ(*var.value(), 3);
+    } else {
+        FAIL() << "Expected to find registered integer convar key";
+    }
 
     // Test changes from registry getting back to convars
-    *registry.read<int>(param0Name).value() = 7;
+    if (auto var = registry.read<int>(param0Name); var.has_value()) {
+        *var.value() = 7;
+    } else {
+        FAIL() << "Expected to find registered integer convar key";
+    }
     EXPECT_EQ(*myParam, 7);
 }

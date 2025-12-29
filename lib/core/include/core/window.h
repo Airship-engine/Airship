@@ -6,11 +6,13 @@
 #include <GLFW/glfw3.h>
 
 #include <cassert>
-#include <memory>
-#include <optional>
+#include <functional>
 #include <string>
+#include <utility>
 
+// NOLINTNEXTLINE
 #define GLFW_CHECK(x) \
+    /* NOLINTBEGIN(cppcoreguidelines-avoid-do-while) */ \
     do { \
         x; \
         const char *description; \
@@ -18,7 +20,8 @@
         int code = glfwGetError(&description); \
         if (description) \
             SHIPLOG_MAYDAY("glfw error {} -> {}", code, description); \
-    } while (false)
+    } while(0) \
+    /* NOLINTEND(cppcoreguidelines-avoid-do-while) */ \
 
 namespace Airship {
     class Window
@@ -45,26 +48,27 @@ namespace Airship {
         }
 
         ~Window() {
-            if (m_Window) GLFW_CHECK(glfwDestroyWindow(m_Window));
+            if (m_Window != nullptr)
+                GLFW_CHECK(glfwDestroyWindow(m_Window));
         }
 
-        Utils::Point<int, 2> GetSize() const {
+        [[nodiscard]] Utils::Point<int, 2> GetSize() const {
             int width, height;
             GLFW_CHECK(glfwGetWindowSize(m_Window, &width, &height));
 
             return Utils::Point<int, 2>(width, height);
         }
 
-        GLFWwindow * Get() { return m_Window; }
+        [[nodiscard]] GLFWwindow * Get() const { return m_Window; }
         void setWindowResizeCallback(resize_callback fn) {
-            m_ResizeCallback = fn;
+            m_ResizeCallback = std::move(fn);
         };
 
         void swapBuffers() const {
             glfwSwapBuffers(m_Window);
         }
 
-        bool shouldClose() const {
+        [[nodiscard]] bool shouldClose() const {
             return glfwWindowShouldClose(m_Window) != 0;
         }
 
@@ -77,9 +81,9 @@ namespace Airship {
         resize_callback m_ResizeCallback;
 
         static void windowResizeCallback(GLFWwindow *window, int width, int height) {
-            Window *win = nullptr;
+            const Window *win = nullptr;
             GLFW_CHECK(win = static_cast<Window*>(glfwGetWindowUserPointer(window)));
-            if (win && win->m_ResizeCallback) {
+            if ((win != nullptr) && win->m_ResizeCallback) {
                 win->m_ResizeCallback(width, height);
             }
         }

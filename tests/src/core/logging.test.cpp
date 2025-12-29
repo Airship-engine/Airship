@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <fstream>
 #include <filesystem>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 // Temporary filename creation has no platform-agnostic API
 #ifdef _WIN32
@@ -27,16 +30,21 @@ std::string create_temp_file() {
 }
 #else
 #include <unistd.h>
-std::string create_temp_file() {
-    char template_[] = "/tmp/tempfile.XXXXXX";
-    int fd = mkstemp(template_);
-    if (fd == -1) {
-        throw std::runtime_error("Error creating temporary file: " + std::string(strerror(errno)));
+#include <cerrno>
+#include <stdlib.h> // NOLINT // mkstemp only guaranteed in stdlib.h on POSIX
+#include <cstring>
+namespace {
+    std::string create_temp_file() {
+        std::string template_ = "/tmp/tempfile.XXXXXX";
+        const int fd = mkstemp(template_.data());
+        if (fd == -1) {
+            throw std::runtime_error("Error creating temporary file: " + std::string(strerror(errno)));
+        }
+        // Close the file. This may leak empty files if the filename isn't used,
+        // but they're empty so this is acceptable for now.
+        close(fd);
+        return template_;
     }
-    // Close the file. This may leak empty files if the filename isn't used,
-    // but they're empty so this is acceptable for now.
-    close(fd);
-    return template_;
 }
 #endif
 
@@ -56,7 +64,7 @@ TEST(Logging, coutinfo)
 
 TEST(Logging, fileoutput)
 {
-    std::string filename = create_temp_file();
+    const std::string filename = create_temp_file();
     SHIPLOG_ERROR(filename);
 
     Airship::ShipLog::get().AddFileOutput("test log", filename, Airship::ShipLog::Level::ERROR);
@@ -66,7 +74,7 @@ TEST(Logging, fileoutput)
     ASSERT_TRUE(std::filesystem::exists(filename.c_str()));
 
     {
-        std::ifstream tmpFile(filename); // this is equivalent to the above method
+        const std::ifstream tmpFile(filename); // this is equivalent to the above method
         if(!tmpFile.good())
         {
             FAIL() << "Failed to open the tmpfile: " << filename;
@@ -85,7 +93,7 @@ TEST(Logging, fileoutput)
     Airship::ShipLog::get().RemoveOutput("test log");
 
     {
-        std::ifstream tmpFile(filename); // this is equivalent to the above method
+        const std::ifstream tmpFile(filename); // this is equivalent to the above method
         if(!tmpFile.good())
         {
             FAIL() << "Failed to open the tmpfile: " << filename;

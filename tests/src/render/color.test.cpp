@@ -5,9 +5,9 @@
 #include "gtest/gtest.h"
 
 TEST(Color, SimpleBlend) {
-    Airship::Color red = Airship::Colors::Red;
-    Airship::Color green = Airship::Colors::Green;
-    Airship::Color blue = Airship::Colors::Blue;
+    const Airship::Color red = Airship::Colors::Red;
+    const Airship::Color green = Airship::Colors::Green;
+    const Airship::Color blue = Airship::Colors::Blue;
 
     EXPECT_EQ(
         Airship::Color::blend(red, green, Airship::Color::BlendMode::Add),
@@ -22,9 +22,9 @@ TEST(Color, SimpleBlend) {
         Airship::Colors::Cyan
     );
 
-    Airship::Color cyan = Airship::Colors::Cyan;
-    Airship::Color magenta = Airship::Colors::Magenta;
-    Airship::Color yellow = Airship::Colors::Yellow;
+    const Airship::Color cyan = Airship::Colors::Cyan;
+    const Airship::Color magenta = Airship::Colors::Magenta;
+    const Airship::Color yellow = Airship::Colors::Yellow;
     EXPECT_EQ(
         Airship::Color::blend(red, cyan, Airship::Color::BlendMode::Add),
         Airship::Colors::White
@@ -38,9 +38,9 @@ TEST(Color, SimpleBlend) {
         Airship::Colors::White
     );
 
-    Airship::Color white = Airship::Colors::White;
-    Airship::Color grey = Airship::Colors::Grey;
-    Airship::Color black = Airship::Colors::Black;
+    const Airship::Color white = Airship::Colors::White;
+    const Airship::Color grey = Airship::Colors::Grey;
+    const Airship::Color black = Airship::Colors::Black;
     EXPECT_EQ(
         Airship::Color::blend(white, black, Airship::Color::BlendMode::Add),
         white
@@ -52,15 +52,15 @@ TEST(Color, SimpleBlend) {
 }
 
 TEST(Color, Normalize) {
-    Airship::Color white = Airship::Colors::White;
-    Airship::Color red = Airship::Colors::Red;
-    Airship::Color magenta = Airship::Colors::Magenta;
+    const Airship::Color white = Airship::Colors::White;
+    const Airship::Color red = Airship::Colors::Red;
+    const Airship::Color magenta = Airship::Colors::Magenta;
 
     EXPECT_EQ(
         white.normalize(),
         white
     );
-    Airship::Color extraRed = Airship::Color::blend(red, magenta, Airship::Color::BlendMode::Add);
+    const Airship::Color extraRed = Airship::Color::blend(red, magenta, Airship::Color::BlendMode::Add);
     EXPECT_NE(
         extraRed,
         magenta
@@ -70,10 +70,10 @@ TEST(Color, Normalize) {
         magenta
     );
 
-    Airship::Color green = Airship::Colors::Green;
+    const Airship::Color green = Airship::Colors::Green;
     Airship::Color tooOrange = Airship::Color::blend(red, red, Airship::Color::BlendMode::Add);
     tooOrange = Airship::Color::blend(tooOrange, green, Airship::Color::BlendMode::Add);
-    Airship::Color orange = Airship::Colors::Orange;
+    const Airship::Color orange = Airship::Colors::Orange;
     EXPECT_NE(
         tooOrange,
         orange

@@ -1,7 +1,11 @@
 // #include "core/application.h"
 #include "gtest/gtest.h"
+#include <string>
+#include <vector>
 #include "core/logging.h"
 #include "render/opengl/renderer.h"
+#include "core/window.h"
+#include "render/color.h"
 #include "test/common.h"
 
 TEST(Renderer, Init) {
@@ -10,8 +14,12 @@ TEST(Renderer, Init) {
     app.Run();
 
     // We have a window, and it'll only be destroyed when app goes out of scope
-    EXPECT_EQ(app.GetWindow().has_value(), true);
-    Airship::Window *window = app.GetWindow().value();
+    Airship::Window * window = nullptr;
+    if (auto windowVar = app.GetWindow(); windowVar.has_value()) {
+        window = windowVar.value();
+    } else {
+        FAIL() << "Failed to create window for rendering tests.";
+    }
     EXPECT_TRUE(window != nullptr);
     EXPECT_TRUE(window->Get() != nullptr);
 
@@ -20,7 +28,7 @@ TEST(Renderer, Init) {
     r.init();
     r.setClearColor(Airship::Colors::CornflowerBlue);
     r.resize(window->GetSize().x(), window->GetSize().y());
-    app.GetWindow().value()->setWindowResizeCallback([&r](int width, int height) {
+    window->setWindowResizeCallback([&r](int width, int height) {
         r.resize(width, height);
     });
 
@@ -31,11 +39,11 @@ TEST(Renderer, Init) {
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
 
-    Airship::Renderer::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
+    const Airship::Renderer::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
     bool ok = r.compileShader(vs_id, vertexShaderSource);
     EXPECT_TRUE(ok);
     if (!ok) {
-        std::string log = r.getCompileLog(vs_id);
+        const std::string log = r.getCompileLog(vs_id);
         SHIPLOG_ERROR(log);
     }
 
@@ -46,21 +54,21 @@ TEST(Renderer, Init) {
     "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
     "}\0";
 
-    Airship::Renderer::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
+    const Airship::Renderer::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
     ok = r.compileShader(fs_id, fragmentShaderSource);
     EXPECT_TRUE(ok);
     if (!ok) {
-        std::string log = r.getCompileLog(fs_id);
+        const std::string log = r.getCompileLog(fs_id);
         SHIPLOG_ERROR(log);
     }
 
-    Airship::Renderer::program_id pid = r.createProgram();
+    const Airship::Renderer::program_id pid = r.createProgram();
     r.attachShader(pid, vs_id);
     r.attachShader(pid, fs_id);
     ok = r.linkProgram(pid);
     EXPECT_TRUE(ok);
     if (!ok) {
-        std::string log = r.getLinkLog(fs_id);
+        const std::string log = r.getLinkLog(fs_id);
         SHIPLOG_ERROR(log);
     }
     r.deleteShader(vs_id);
@@ -69,19 +77,19 @@ TEST(Renderer, Init) {
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
     using VertexData = std::vector<Airship::Vertex>;
-    VertexData verticesA = {
+    const VertexData verticesA = {
         {{-0.5f, -0.5f, 0.0f}},
         {{ 0.5f, -0.5f, 0.0f}},
         {{ 0.0f,  0.5f, 0.0f}},
     };
 
-    VertexData verticesB = {
+    const VertexData verticesB = {
         {{-0.5f,  0.5f, 0.0f}},
         {{ 0.5f,  0.5f, 0.0f}},
         {{ 0.0f, -0.5f, 0.0f}},
     };
 
-    std::vector<Airship::Mesh> meshes {
+    const std::vector<Airship::Mesh> meshes {
         verticesA,
         verticesB
     };

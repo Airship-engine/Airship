@@ -1,4 +1,3 @@
-#include "core/application.h"
 #include "gtest/gtest.h"
 #include "test/common.h"
 

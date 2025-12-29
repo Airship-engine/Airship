@@ -1,13 +1,17 @@
 #include "core/event.h"
 
-#include <iostream>
+#include <algorithm>
+#include <memory>
+#include <mutex>
+#include <unordered_map>
+#include <vector>
 
 namespace Airship {
 
 EventPublisher::~EventPublisher()
 {
     for(auto& [subscriber, callbacks] : m_SubscriberCallbacks )
-        subscriber->CancelSubscription(*this); 
+        subscriber->CancelSubscription(*this);
 }
 
 void EventPublisher::RemoveSubscriber(EventSubscriber& subscriber)
@@ -39,9 +43,8 @@ void EventSubscriber::CancelSubscription(EventPublisher& publisher)
     m_Subscribed.erase(&publisher);
 }
 
-EventSubscriber::~EventSubscriber()
-{
-    for (auto publisher : m_Subscribed)
+EventSubscriber::~EventSubscriber() {
+    for (auto *publisher : m_Subscribed)
         publisher->RemoveSubscriber(*this);
 }
 } // namespace Airship

@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cstdint>
+
 namespace Airship {
 
 struct HSVColor;
@@ -7,12 +9,12 @@ struct HSVColor;
 struct RGBColor {
 
     constexpr RGBColor(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
-    RGBColor(const HSVColor& other);
+    RGBColor(const HSVColor& hsv);
 
     bool operator==(const RGBColor& other) const = default;
 
     // https://en.wikipedia.org/wiki/Blend_modes
-    enum class BlendMode {
+    enum class BlendMode : uint8_t {
         Alpha, // Same as over compositing
         Multiply,
         Add,
@@ -21,11 +23,11 @@ struct RGBColor {
     static RGBColor blend(const RGBColor& bg, const RGBColor& fg, BlendMode mode = BlendMode::Alpha);
     static RGBColor lerp(const RGBColor& bg, const RGBColor& fg, float t);
 
-    enum class NormalizeMode {
+    enum class NormalizeMode : uint8_t {
         Clamp,
         Scale
     };
-    RGBColor normalize(NormalizeMode mode = NormalizeMode::Scale);
+    [[nodiscard]] RGBColor normalize(NormalizeMode mode = NormalizeMode::Scale) const;
 
     float r, g, b, a;
 };
@@ -33,7 +35,7 @@ using Color = RGBColor;
 
 struct HSVColor {
     HSVColor(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
-    HSVColor(const RGBColor& other);
+    HSVColor(const RGBColor& rgb);
 
     float h, s, v, a;
 };

@@ -1,19 +1,27 @@
 
 #include "render/opengl/renderer.h"
+#include "GL/glcorearb.h"
 #include "core/logging.h"
 
 #include "GL/gl3w.h"
+#include "render/color.h"
+#include <cstddef>
+#include <cstdlib>
+#include <string>
+#include <vector>
 
 namespace Airship {
 
-constexpr static GLenum toGL(ShaderType stype) {
-    switch (stype) {
-        case ShaderType::Vertex: return GL_VERTEX_SHADER;
-        case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
-        default: SHIPLOG_ERROR("Unable to convert to GL shader type");
+namespace {
+    constexpr GLenum toGL(ShaderType stype) {
+        switch (stype) {
+            case ShaderType::Vertex: return GL_VERTEX_SHADER;
+            case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
+            default: SHIPLOG_ERROR("Unable to convert to GL shader type");
+        }
+        return 0;
     }
-    return 0;
-}
+} // anonymous namespace
 
 void Vertex::setAttribData() {
     // Needs to be expanded if vertex data changes
@@ -23,18 +31,21 @@ void Vertex::setAttribData() {
 
 void Vertex::setVertexAttribDataFloat(int idx, int count) {
     // TODO: Improve flexibility and coverage
-    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, count * sizeof(float), (void *)0);
+    auto stride = static_cast<GLsizei>(count * sizeof(float));
+    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, stride, (void *)nullptr);
 }
 
 void Vertex::enableVertexAttribArray(int idx) {
     glEnableVertexAttribArray(idx);
 }
 
-Mesh::Mesh(const std::vector<Vertex> &vertices) : m_Count(static_cast<int>(vertices.size())) {
-    m_VertexArrayObject = createVertexArrayObject();
+Mesh::Mesh(const std::vector<Vertex> &vertices) :
+    m_VertexArrayObject(createVertexArrayObject()),
+    m_BufferArrayObject(createBuffer()),
+    m_Count(static_cast<int>(vertices.size())) {
+    
     bindVertexArrayObject();
 
-    m_BufferArrayObject = createBuffer();
     bindBuffer();
     copyBuffer(vertices.size()*sizeof(Vertex), vertices.data());
 
@@ -42,7 +53,7 @@ Mesh::Mesh(const std::vector<Vertex> &vertices) : m_Count(static_cast<int>(verti
 }
 
 void Mesh::draw() const {
-    int off = 0; // Maybe used, maybe always 0?
+    const int off = 0; // Maybe used, maybe always 0?
     bindVertexArrayObject();
     glDrawArrays(GL_TRIANGLES, off, m_Count);
 }
@@ -72,33 +83,33 @@ void Mesh::bindBuffer() const {
 void Mesh::copyBuffer(size_t bytes, const void *data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
-    glBufferData(GL_ARRAY_BUFFER, bytes, data, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
 }
 
 void Renderer::init() {
-    if (gl3wInit()) {
+    if (gl3wInit() != 0) {
         SHIPLOG_MAYDAY("Unable to initialize gl3w");
         std::abort();
     }
 }
 
-void Renderer::resize(int width, int height) {
+void Renderer::resize(int width, int height) const {
     glViewport(0, 0, width, height);
 }
 
-Renderer::shader_id Renderer::createShader(ShaderType stype) {
+Renderer::shader_id Renderer::createShader(ShaderType stype) const {
     return glCreateShader(toGL(stype));
 }
 
-bool Renderer::compileShader(shader_id sid, const char *source) {
-    glShaderSource(sid, 1, &source, NULL);
+bool Renderer::compileShader(shader_id sid, const char *source) const {
+    glShaderSource(sid, 1, &source, nullptr);
     glCompileShader(sid);
     int ok;
     glGetShaderiv(sid, GL_COMPILE_STATUS, &ok);
     return ok == GL_TRUE;
 }
 
-std::string Renderer::getCompileLog(shader_id sid) {
+std::string Renderer::getCompileLog(shader_id sid) const {
     int len;
     glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
@@ -107,26 +118,26 @@ std::string Renderer::getCompileLog(shader_id sid) {
     return ret;
 }
 
-void Renderer::deleteShader(shader_id sid) {
+void Renderer::deleteShader(shader_id sid) const {
     glDeleteShader(sid);
 }
 
-Renderer::program_id Renderer::createProgram() {
+Renderer::program_id Renderer::createProgram() const {
     return glCreateProgram();
 }
 
-void Renderer::attachShader(program_id pid, shader_id sid) {
+void Renderer::attachShader(program_id pid, shader_id sid) const {
     glAttachShader(pid, sid);
 }
 
-bool Renderer::linkProgram(program_id pid) {
+bool Renderer::linkProgram(program_id pid) const {
     glLinkProgram(pid);
     int ok;
     glGetProgramiv(pid, GL_LINK_STATUS, &ok);
     return ok == GL_TRUE;
 }
 
-std::string Renderer::getLinkLog(program_id pid) {
+std::string Renderer::getLinkLog(program_id pid) const {
     int len;
     glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
@@ -135,11 +146,11 @@ std::string Renderer::getLinkLog(program_id pid) {
     return ret;
 }
 
-void Renderer::bindProgram(program_id pid) {
+void Renderer::bindProgram(program_id pid) const {
     glUseProgram(pid);
 }
 
-void Renderer::draw(const std::vector<Mesh> &meshes) {
+void Renderer::draw(const std::vector<Mesh> &meshes) const {
     glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
     for (const auto &mesh : meshes)

@@ -1,0 +1,41 @@
+---
+Checks: >
+  bugprone-*,
+  -bugprone-easily-swappable-parameters,
+  -bugprone-float-loop-counter,
+  cert-*,
+  -cert-dcl03-c,
+  -cert-flp30-c,
+  clang-analyzer-*,
+  -clang-analyzer-security.FloatLoopCounter,
+  cppcoreguidelines-*,
+  -cppcoreguidelines-avoid-magic-numbers,
+  -cppcoreguidelines-init-variables,
+  -cppcoreguidelines-non-private-member-variables-in-classes,
+  -cppcoreguidelines-pro-type-union-access,
+  -cppcoreguidelines-special-member-functions,
+  misc-*,
+  -misc-const-correctness,
+  -misc-non-private-member-variables-in-classes,
+  # -misc-static-assert,
+  modernize-*,
+  -modernize-use-trailing-return-type,
+  -modernize-return-braced-init-list,
+  performance-*,
+  readability-*,
+  -readability-braces-around-statements,
+  -readability-convert-member-functions-to-static,
+  -readability-function-cognitive-complexity,
+  -readability-identifier-length,
+  -readability-isolate-declaration,
+  -readability-magic-numbers,
+  -readability-uppercase-literal-suffix,
+
+HeaderFilterRegex: '^.*/Airship/(lib|examples|tests)/.*'
+
+CheckOptions:
+  - key: readability-else-after-return.WarnOnConditionVariables
+    value: true
+  - key: readability-else-after-return.WarnOnUnfixable
+    value: true
+...

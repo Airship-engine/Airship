@@ -1,11 +1,12 @@
 #include "test/common.h"
+#include <gtest/gtest.h>
 
-namespace Airship
-{
-namespace Test
+
+namespace Airship::Test
 {
 
-#if !defined(DISABLE_TEST_ENVIRONMENT)
+#ifndef DISABLE_TEST_ENVIRONMENT
+//NOLINTNEXTLINE // non-const global variable
 const ::testing::Environment* airship_environment = ::testing::AddGlobalTestEnvironment(new AirshipTestEnvironment);
 #endif
 
@@ -14,5 +15,5 @@ void Airship::Test::GameClass::OnStart()
     win = CreateWindow(width, height, "test app");
 }
 
-} // namespace Test
-} // namespace Airship
+} // namespace Airship::Test
+

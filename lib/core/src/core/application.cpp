@@ -1,8 +1,10 @@
 #include "core/application.h"
 #include "GLFW/glfw3.h"
+#include "core/window.h"
 
 #include <cassert>
-#include <iostream>
+#include <memory>
+#include <optional>
 #include <string>
 
 namespace Airship {
@@ -20,7 +22,7 @@ Application::~Application() {
 
 std::optional<Window*> Application::CreateWindow(int w, int h, const std::string &title, bool visible)
 {
-    if (w < 1 || h < 1) return std::nullopt;
+    if (w < 1 || h < 1) return std::nullopt; 
     return m_Windows.emplace_back(std::make_unique<Window>(w, h, title, visible)).get();
 }
 

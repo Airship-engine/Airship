@@ -18,6 +18,9 @@
       "name": "root",
       "displayName": "Root configuration used by all other presets",
       "hidden": true,
+      "cacheVariables": {
+        "CLANG_TIDY": "ON"
+      },
       "inherits":  ["gen:ninja", "comp:clang"],
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}"

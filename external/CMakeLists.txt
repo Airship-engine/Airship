@@ -1,3 +1,5 @@
+set(CMAKE_CXX_CLANG_TIDY "")
+
 if (BUILD_TESTS)
     set(INSTALL_GTEST OFF)
     add_subdirectory(googletest)

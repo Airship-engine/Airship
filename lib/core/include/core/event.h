@@ -1,17 +1,18 @@
 #pragma once
 
 #include <any>
+#include <concepts>
+#include <cstddef>
 #include <functional>
 #include <memory>
 #include <mutex>
-#include <string_view>
 #include <typeindex>
+#include <unordered_map>
 #include <unordered_set>
 #include <vector>
 
 // Event system is heavily inspired by DeveloperPaul123's eventbus implementation:
 // https://github.com/DeveloperPaul123/eventbus
-
 
 namespace Airship {
 
@@ -31,7 +32,7 @@ struct EventCallback
 class EventWrapperInterface
 {
 public:
-    virtual ~EventWrapperInterface() {};
+    virtual ~EventWrapperInterface() = default;
 
     virtual void PublishSync(EventPublisher *eventPublisher) = 0;
 };
@@ -45,12 +46,12 @@ public:
     virtual ~EventPublisher();
 
     template <class EventType, std::invocable<EventType> CallbackType>
-    void AddSubscriber(EventSubscriber &subscriber, CallbackType &&callback)
+    void AddSubscriber(EventSubscriber &subscriber, const CallbackType &callback)
     {
         auto it = m_EventCallbacks.emplace(
             typeid(EventType),
-            [func = std::forward<CallbackType>(callback)](std::any event)
-            { func(std::any_cast<EventType>(event)); });
+            [callback](std::any event)
+            { callback(std::any_cast<EventType>(event)); });
         m_SubscriberCallbacks.emplace(&subscriber, it->second.m_Handle);
     }
     void RemoveSubscriber(EventSubscriber &subscriber);
@@ -60,23 +61,25 @@ public:
 
     // Queues an Event to be processed in the next frame.
     template <class EventType>
-    void Publish(EventType &&event)
+    void Publish(const EventType &event)
     {
-        std::lock_guard<std::mutex> lock(m_QueueMutex);
+        std::scoped_lock const lock(m_QueueMutex);
         m_QueuedEvents.push_back(std::make_unique<EventWrapper<EventType>>(event));
     }
 
     // Immediately fires event and handles resulting callbacks. Blocking function.
     template <class EventType>
-    void PublishSync(EventType &&event)
+    void PublishSync(const EventType &event)
     {
         auto eventsRange = m_EventCallbacks.equal_range(typeid(EventType));
         for (auto it = eventsRange.first; it != eventsRange.second; ++it)
+        {
             it->second.m_Callback(std::any(event));
+        }
     }
 
-    inline size_t EventCount() const { return m_EventCallbacks.size(); }
-    inline size_t SubscriberCount() const { return m_SubscriberCallbacks.size(); }
+    [[nodiscard]] size_t EventCount() const { return m_EventCallbacks.size(); }
+    [[nodiscard]] size_t SubscriberCount() const { return m_SubscriberCallbacks.size(); }
 
 private:
     std::unordered_multimap<std::type_index, EventCallback> m_EventCallbacks;
@@ -91,13 +94,13 @@ class EventSubscriber
 public:
     virtual ~EventSubscriber();
 
-    inline size_t SubscribedCount() const { return m_Subscribed.size(); }
+    [[nodiscard]] size_t SubscribedCount() const { return m_Subscribed.size(); }
 
     template <class EventType, std::invocable<EventType> CallbackType>
     bool SubscribeTo(EventPublisher &pub, CallbackType &&callback)
     {
         m_Subscribed.insert(&pub);
-        pub.AddSubscriber<EventType>(*this, callback);
+        pub.AddSubscriber<EventType>(*this, std::forward<CallbackType>(callback));
 
         return true;
     }
@@ -112,7 +115,7 @@ template <class EventType>
 class EventWrapper : public EventWrapperInterface
 {
 public:
-    EventWrapper<EventType>(EventType e) : m_Event(e) {}
+    EventWrapper(EventType e) : EventWrapperInterface(), m_Event(std::move(e)) {}
 
     void PublishSync(EventPublisher *eventPublisher) override
     {

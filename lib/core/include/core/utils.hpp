@@ -2,6 +2,7 @@
 
 #include <array>
 #include <cassert>
+#include <cstddef>
 
 namespace Airship::Utils
 {
@@ -32,15 +33,15 @@ namespace Airship::Utils
             return m_Coords[0];
         }
 
-        template<int dims = D, typename = std::enable_if_t<dims >= 2>>
+        template<int dims = D>
         value_type& y()
-        {
+        requires (dims >= 2) {
             return m_Coords[1];
         }
 
-        template<int dims = D, typename = std::enable_if_t<dims >= 3>>
+        template<int dims = D>
         value_type& z()
-        {
+        requires (dims >= 3) {
             return m_Coords[2];
         }
 
