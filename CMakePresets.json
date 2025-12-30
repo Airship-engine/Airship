@@ -21,7 +21,10 @@
       "cacheVariables": {
         "CLANG_TIDY": "ON"
       },
-      "inherits":  ["gen:ninja", "comp:clang"],
+      "inherits": [
+        "gen:ninja",
+        "comp:clang"
+      ],
       "binaryDir": "${sourceDir}/build/${presetName}",
       "installDir": "${sourceDir}/install/${presetName}"
     },

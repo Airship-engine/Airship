@@ -1,27 +1,31 @@
 #define NOGDI
 
 #include "render/opengl/renderer.h"
-#include "GL/glcorearb.h"
-#include "core/logging.h"
 
-#include "GL/gl3w.h"
-#include "render/color.h"
 #include <cstddef>
 #include <cstdlib>
 #include <string>
 #include <vector>
 
+#include "GL/gl3w.h"
+#include "GL/glcorearb.h"
+#include "core/logging.h"
+#include "render/color.h"
+
 namespace Airship {
 
 namespace {
-    constexpr GLenum toGL(ShaderType stype) {
-        switch (stype) {
-            case ShaderType::Vertex: return GL_VERTEX_SHADER;
-            case ShaderType::Fragment: return GL_FRAGMENT_SHADER;
-            default: SHIPLOG_ERROR("Unable to convert to GL shader type");
-        }
-        return 0;
+constexpr GLenum toGL(ShaderType stype) {
+    switch (stype) {
+    case ShaderType::Vertex:
+        return GL_VERTEX_SHADER;
+    case ShaderType::Fragment:
+        return GL_FRAGMENT_SHADER;
+    default:
+        SHIPLOG_ERROR("Unable to convert to GL shader type");
     }
+    return 0;
+}
 } // anonymous namespace
 
 void Vertex::setAttribData() {
@@ -33,22 +37,20 @@ void Vertex::setAttribData() {
 void Vertex::setVertexAttribDataFloat(int idx, int count) {
     // TODO: Improve flexibility and coverage
     auto stride = static_cast<GLsizei>(count * sizeof(float));
-    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, stride, (void *)nullptr);
+    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, stride, (void*) nullptr);
 }
 
 void Vertex::enableVertexAttribArray(int idx) {
     glEnableVertexAttribArray(idx);
 }
 
-Mesh::Mesh(const std::vector<Vertex> &vertices) :
-    m_VertexArrayObject(createVertexArrayObject()),
-    m_BufferArrayObject(createBuffer()),
+Mesh::Mesh(const std::vector<Vertex>& vertices) :
+    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()),
     m_Count(static_cast<int>(vertices.size())) {
-    
     bindVertexArrayObject();
 
     bindBuffer();
-    copyBuffer(vertices.size()*sizeof(Vertex), vertices.data());
+    copyBuffer(vertices.size() * sizeof(Vertex), vertices.data());
 
     Vertex::setAttribData();
 }
@@ -81,7 +83,7 @@ void Mesh::bindBuffer() const {
     glBindBuffer(GL_ARRAY_BUFFER, m_BufferArrayObject);
 }
 
-void Mesh::copyBuffer(size_t bytes, const void *data) const {
+void Mesh::copyBuffer(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
@@ -102,7 +104,7 @@ Renderer::shader_id Renderer::createShader(ShaderType stype) const {
     return glCreateShader(toGL(stype));
 }
 
-bool Renderer::compileShader(shader_id sid, const char *source) const {
+bool Renderer::compileShader(shader_id sid, const char* source) const {
     glShaderSource(sid, 1, &source, nullptr);
     glCompileShader(sid);
     int ok;
@@ -151,14 +153,14 @@ void Renderer::bindProgram(program_id pid) const {
     glUseProgram(pid);
 }
 
-void Renderer::draw(const std::vector<Mesh> &meshes) const {
+void Renderer::draw(const std::vector<Mesh>& meshes) const {
     glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
-    for (const auto &mesh : meshes)
+    for (const auto& mesh : meshes)
         mesh.draw();
 }
 
-void Renderer::setClearColor(const RGBColor &color) {
+void Renderer::setClearColor(const RGBColor& color) {
     m_ClearColor = color;
 }
 

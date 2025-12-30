@@ -1,9 +1,11 @@
 #include "core/event.h"
-#include "gtest/gtest.h"
+
 #include <string_view>
 #include <vector>
 
-struct TestEvent  {};
+#include "gtest/gtest.h"
+
+struct TestEvent {};
 
 TEST(Event, Init) {
     const Airship::EventPublisher ep;
@@ -103,7 +105,8 @@ TEST(Event, CleanupSubscriber) {
     EXPECT_EQ(count, 1);
 }
 
-// Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove references to the deleted publisher.
+// Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove
+// references to the deleted publisher.
 TEST(Event, CleanupPublisher) {
     Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
@@ -128,7 +131,8 @@ TEST(Event, CleanupPublisher) {
     EXPECT_EQ(es.SubscribedCount(), 0);
 }
 
-// Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove references to the deleted publisher.
+// Test that if an EventPublisher goes away before an EventSubscriber, the correct lists are updated to remove
+// references to the deleted publisher.
 TEST(Event, DataIntegrity) {
     const struct DataType {
         std::vector<std::string_view> m_Strings{"Test1", "Test2", "Test3"};
@@ -144,8 +148,7 @@ TEST(Event, DataIntegrity) {
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     bool eventTriggered = false;
-    es.SubscribeTo<decltype(dataEvent)>(ep, [&dataEvent, &eventTriggered](const decltype(dataEvent)& e) 
-    {
+    es.SubscribeTo<decltype(dataEvent)>(ep, [&dataEvent, &eventTriggered](const decltype(dataEvent)& e) {
         EXPECT_EQ(dataEvent.m_Strings, e.m_Strings);
         EXPECT_EQ(dataEvent.m_Value, e.m_Value);
         EXPECT_EQ(dataEvent.m_Scale, e.m_Scale);
