@@ -1,41 +1,38 @@
 #pragma once
 
-#include "spdlog/common.h"
-#include "spdlog/details/log_msg.h"
-#include "spdlog/logger.h"
 #include <algorithm>
 #include <cassert>
 #include <cstdint>
 #include <functional>
+#include <memory>
+#include <string>
 #include <string_view>
 #include <sys/types.h>
 #include <unordered_map>
 #include <utility>
 
-#include "spdlog/sinks/stdout_color_sinks.h"
+#include "spdlog/common.h"
+#include "spdlog/details/log_msg.h"
+#include "spdlog/logger.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/callback_sink.h"
+#include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/spdlog.h"
-
-#include <memory>
-#include <string>
+#include "spdlog/tweakme.h"
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
-#define SHIPLOG_DEBUG( ... ) SPDLOG_LOGGER_DEBUG(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
-#define SHIPLOG_INFO( ... ) SPDLOG_LOGGER_INFO(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
-#define SHIPLOG_ALERT( ... ) SPDLOG_LOGGER_WARN(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
-#define SHIPLOG_ERROR( ... ) SPDLOG_LOGGER_ERROR(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
-#define SHIPLOG_MAYDAY( ... ) SPDLOG_LOGGER_CRITICAL(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+#define SHIPLOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+#define SHIPLOG_INFO(...) SPDLOG_LOGGER_INFO(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+#define SHIPLOG_ALERT(...) SPDLOG_LOGGER_WARN(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+#define SHIPLOG_ERROR(...) SPDLOG_LOGGER_ERROR(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+#define SHIPLOG_MAYDAY(...) SPDLOG_LOGGER_CRITICAL(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 // NOLINTEND(cppcoreguidelines-macro-usage)
 
-namespace Airship
-{
+namespace Airship {
 
-class ShipLog
-{
+class ShipLog {
 public:
-    enum class Level : uint8_t
-    {
+    enum class Level : uint8_t {
         DEBUG,
         INFO,
         ALERT,
@@ -43,14 +40,12 @@ public:
         MAYDAY
     };
 
-    static ShipLog& get()
-    {
+    static ShipLog& get() {
         static ShipLog log;
         return log;
     }
 
-    ShipLog()
-    {
+    ShipLog() {
         auto consoleSink = std::make_shared<spdlog::sinks::stdout_color_sink_mt>();
         consoleSink->set_level(spdlog::level::info);
         m_ActiveSinks.emplace("default_log", consoleSink);
@@ -64,19 +59,14 @@ public:
         spdlog::register_logger(m_Logger);
     }
 
-    spdlog::logger* GetLogger()
-    {
-        return m_Logger.get();
-    }
+    spdlog::logger* GetLogger() { return m_Logger.get(); }
 
-    bool AddFileOutput(const std::string& name, const std::string& filename, Level level)
-    {
-        if (m_ActiveSinks.contains(name))
-            return false;
+    bool AddFileOutput(const std::string& name, const std::string& filename, Level level) {
+        if (m_ActiveSinks.contains(name)) return false;
 
-        auto [it, sinkAdded] = m_ActiveSinks.emplace(name, std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.c_str(), true));
-        if (!sinkAdded)
-            return false;
+        auto [it, sinkAdded] =
+            m_ActiveSinks.emplace(name, std::make_shared<spdlog::sinks::basic_file_sink_mt>(filename.c_str(), true));
+        if (!sinkAdded) return false;
 
         std::shared_ptr<spdlog::sinks::sink> newSink = it->second;
         newSink->set_level(ToSpdLog(level));
@@ -84,17 +74,15 @@ public:
         return true;
     }
 
-    bool AddListener(const std::string& name, const std::function<void(Level level, const std::string_view)>& listener, Level level)
-    {
-        if (m_ActiveSinks.contains(name))
-            return false;
+    bool AddListener(const std::string& name, const std::function<void(Level level, const std::string_view)>& listener,
+                     Level level) {
+        if (m_ActiveSinks.contains(name)) return false;
 
-        auto [it, sinkAdded] = m_ActiveSinks.emplace(name, std::make_shared<spdlog::sinks::callback_sink_mt>([listener](const spdlog::details::log_msg &msg)
-            { 
+        auto [it, sinkAdded] = m_ActiveSinks.emplace(
+            name, std::make_shared<spdlog::sinks::callback_sink_mt>([listener](const spdlog::details::log_msg& msg) {
                 listener(FromSpdLog(msg.level), msg.payload);
             }));
-        if (!sinkAdded)
-            return false;
+        if (!sinkAdded) return false;
 
         std::shared_ptr<spdlog::sinks::sink> newSink = it->second;
         newSink->set_level(ToSpdLog(level));
@@ -102,10 +90,8 @@ public:
         return true;
     }
 
-    bool RemoveOutput(const std::string &name)
-    {
-        if (!m_ActiveSinks.contains(name))
-            return false;
+    bool RemoveOutput(const std::string& name) {
+        if (!m_ActiveSinks.contains(name)) return false;
 
         auto it = m_ActiveSinks.find(name);
         auto loggerIt = std::find(m_Logger->sinks().begin(), m_Logger->sinks().end(), it->second);
@@ -115,30 +101,20 @@ public:
         return true;
     }
 
-    bool SetLevel(const std::string &name, Level level)
-    {
-        if (!m_ActiveSinks.contains(name))
-            return false;
+    bool SetLevel(const std::string& name, Level level) {
+        if (!m_ActiveSinks.contains(name)) return false;
 
         m_ActiveSinks.at(name)->set_level(ToSpdLog(level));
         return true;
     }
 
-    void FlushLogs()
-    {
-        m_Logger->flush();
-    }
+    void FlushLogs() { m_Logger->flush(); }
 
-    constexpr static bool IsLevelEnabled(Level level)
-    {
-        return ToSpdLog(level) >= SPDLOG_ACTIVE_LEVEL;
-    }
+    constexpr static bool IsLevelEnabled(Level level) { return ToSpdLog(level) >= SPDLOG_ACTIVE_LEVEL; }
 
 private:
-    constexpr static spdlog::level::level_enum ToSpdLog(Level shipLogLevel)
-    {
-        switch (shipLogLevel)
-        {
+    constexpr static spdlog::level::level_enum ToSpdLog(Level shipLogLevel) {
+        switch (shipLogLevel) {
         case Level::DEBUG:
             return spdlog::level::debug;
         case Level::INFO:
@@ -154,10 +130,8 @@ private:
         return spdlog::level::info;
     }
 
-    constexpr static Level FromSpdLog(spdlog::level::level_enum level)
-    {
-        switch (level)
-        {
+    constexpr static Level FromSpdLog(spdlog::level::level_enum level) {
+        switch (level) {
         case spdlog::level::trace:
             [[fallthrough]];
         case spdlog::level::debug:

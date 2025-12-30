@@ -1,15 +1,19 @@
+#include <optional>
+#include <string>
+#include <vector>
+
 #include "core/application.h"
+#include "core/logging.h"
+#include "core/window.h"
 #include "render/opengl/renderer.h"
 
-class Game : public Airship::Application
-{
+class Game : public Airship::Application {
 public:
     Game() = default;
     Game(int height, int width) : m_Height(height), m_Width(width) {}
 
 protected:
-    void OnStart() override
-    {
+    void OnStart() override {
         m_MainWin = CreateWindow(m_Width, m_Height, "Shapes Example");
 
         m_Renderer.init();
@@ -20,12 +24,15 @@ protected:
             m_Width = width;
         });
 
-        const char *vertexShaderSource = "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
-        "void main()\n"
-        "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-        "}\0";
+        // clang-format off
+        const char* vertexShaderSource =
+            "#version 330 core\n"
+            "layout (location = 0) in vec3 aPos;\n"
+            "void main()\n"
+            "{\n"
+            "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+            "}\0";
+        // clang-format on
 
         Airship::Renderer::shader_id vs_id = m_Renderer.createShader(Airship::ShaderType::Vertex);
         bool ok = m_Renderer.compileShader(vs_id, vertexShaderSource);
@@ -34,12 +41,15 @@ protected:
             SHIPLOG_ERROR(log);
         }
 
-        const char *fragmentShaderSource = "#version 330 core\n"
-        "out vec4 FragColor;\n"
-        "void main()\n"
-        "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-        "}\0";
+        // clang-format off
+        const char* fragmentShaderSource =
+            "#version 330 core\n"
+            "out vec4 FragColor;\n"
+            "void main()\n"
+            "{\n"
+            "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+            "}\0";
+        // clang-format on
 
         Airship::Renderer::shader_id fs_id = m_Renderer.createShader(Airship::ShaderType::Fragment);
         ok = m_Renderer.compileShader(fs_id, fragmentShaderSource);
@@ -65,24 +75,20 @@ protected:
         using VertexData = std::vector<Airship::Vertex>;
         VertexData verticesA = {
             {{-0.5f, -0.5f, 0.0f}},
-            {{ 0.5f, -0.5f, 0.0f}},
-            {{ 0.0f,  0.5f, 0.0f}},
+            {{0.5f, -0.5f, 0.0f}},
+            {{0.0f, 0.5f, 0.0f}},
         };
 
         VertexData verticesB = {
-            {{-0.5f,  0.5f, 0.0f}},
-            {{ 0.5f,  0.5f, 0.0f}},
-            {{ 0.0f, -0.5f, 0.0f}},
+            {{-0.5f, 0.5f, 0.0f}},
+            {{0.5f, 0.5f, 0.0f}},
+            {{0.0f, -0.5f, 0.0f}},
         };
 
-        std::vector<Airship::Mesh> meshes {
-            verticesA,
-            verticesB
-        };
+        std::vector<Airship::Mesh> meshes{verticesA, verticesB};
 
         // TODO: Pull into application?
-        while(!m_MainWin.value()->shouldClose())
-        {
+        while (!m_MainWin.value()->shouldClose()) {
             m_MainWin.value()->pollEvents();
 
             // Draw code

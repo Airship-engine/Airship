@@ -1,8 +1,10 @@
 #include "core/convar.h"
-#include "test/common.h"
-#include "gtest/gtest.h"
+
 #include <optional>
 #include <string>
+
+#include "gtest/gtest.h"
+#include "test/common.h"
 
 constexpr const char* param0Name = "myParam";
 constexpr const char* param1Name = "otherParam";

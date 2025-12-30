@@ -1,0 +1,70 @@
+# .clang-format
+BasedOnStyle: LLVM
+Language: Cpp
+Standard: c++20
+
+# Indentation
+IndentWidth: 4
+TabWidth: 4
+UseTab: Never
+ContinuationIndentWidth: 4
+AccessModifierOffset: -4
+
+# Line length
+ColumnLimit: 120
+
+# Braces (same-line / K&R style)
+BreakBeforeBraces: Attach
+
+# Namespaces
+NamespaceIndentation: None
+FixNamespaceComments: true
+
+# Pointer and reference alignment
+PointerAlignment: Left
+ReferenceAlignment: Left
+
+# Spaces
+SpaceBeforeParens: ControlStatements
+SpacesInParens: Never
+SpacesInAngles: false
+SpaceBeforeRangeBasedForLoopColon: true
+SpaceAfterCStyleCast: true
+
+# Short functions
+AllowShortFunctionsOnASingleLine: Inline
+AllowShortIfStatementsOnASingleLine: WithoutElse
+AllowShortLoopsOnASingleLine: false
+AllowShortEnumsOnASingleLine: false
+
+# Constructor initializer lists
+BreakConstructorInitializers: AfterColon
+ConstructorInitializerIndentWidth: 4
+
+# Function formatting
+AlwaysBreakTemplateDeclarations: Yes
+
+# Includes
+IncludeBlocks: Regroup
+SortIncludes: true
+IncludeCategories:
+  - Regex: '^<.*>'
+    Priority: 1
+  - Regex: '^".*"'
+    Priority: 2
+
+# Comments
+AlignTrailingComments: false
+ReflowComments: true
+SpacesBeforeTrailingComments: 1
+
+# Alignment (avoid excessive vertical alignment)
+AlignAfterOpenBracket: true
+AlignConsecutiveAssignments: None
+AlignConsecutiveDeclarations: None
+AlignConsecutiveMacros: None
+
+# Misc
+KeepEmptyLinesAtEOF: true
+MaxEmptyLinesToKeep: 1
+SortUsingDeclarations: Lexicographic

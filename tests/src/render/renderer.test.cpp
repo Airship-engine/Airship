@@ -1,10 +1,12 @@
 // #include "core/application.h"
-#include "gtest/gtest.h"
+#include "render/opengl/renderer.h"
+
 #include <string>
 #include <vector>
+
 #include "core/logging.h"
-#include "render/opengl/renderer.h"
 #include "core/window.h"
+#include "gtest/gtest.h"
 #include "render/color.h"
 #include "test/common.h"
 
@@ -14,7 +16,7 @@ TEST(Renderer, Init) {
     app.Run();
 
     // We have a window, and it'll only be destroyed when app goes out of scope
-    Airship::Window * window = nullptr;
+    Airship::Window* window = nullptr;
     if (auto windowVar = app.GetWindow(); windowVar.has_value()) {
         window = windowVar.value();
     } else {
@@ -28,16 +30,17 @@ TEST(Renderer, Init) {
     r.init();
     r.setClearColor(Airship::Colors::CornflowerBlue);
     r.resize(window->GetSize().x(), window->GetSize().y());
-    window->setWindowResizeCallback([&r](int width, int height) {
-        r.resize(width, height);
-    });
+    window->setWindowResizeCallback([&r](int width, int height) { r.resize(width, height); });
 
-    const char *vertexShaderSource = "#version 330 core\n"
-    "layout (location = 0) in vec3 aPos;\n"
-    "void main()\n"
-    "{\n"
-    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-    "}\0";
+    // clang-format off
+    const char* vertexShaderSource =
+        "#version 330 core\n"
+        "layout (location = 0) in vec3 aPos;\n"
+        "void main()\n"
+        "{\n"
+        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "}\0";
+    // clang-format on
 
     const Airship::Renderer::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
     bool ok = r.compileShader(vs_id, vertexShaderSource);
@@ -47,12 +50,15 @@ TEST(Renderer, Init) {
         SHIPLOG_ERROR(log);
     }
 
-    const char *fragmentShaderSource = "#version 330 core\n"
-    "out vec4 FragColor;\n"
-    "void main()\n"
-    "{\n"
-    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-    "}\0";
+    // clang-format off
+    const char* fragmentShaderSource =
+        "#version 330 core\n"
+        "out vec4 FragColor;\n"
+        "void main()\n"
+        "{\n"
+        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "}\0";
+    // clang-format on
 
     const Airship::Renderer::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
     ok = r.compileShader(fs_id, fragmentShaderSource);
@@ -79,24 +85,20 @@ TEST(Renderer, Init) {
     using VertexData = std::vector<Airship::Vertex>;
     const VertexData verticesA = {
         {{-0.5f, -0.5f, 0.0f}},
-        {{ 0.5f, -0.5f, 0.0f}},
-        {{ 0.0f,  0.5f, 0.0f}},
+        {{0.5f, -0.5f, 0.0f}},
+        {{0.0f, 0.5f, 0.0f}},
     };
 
     const VertexData verticesB = {
-        {{-0.5f,  0.5f, 0.0f}},
-        {{ 0.5f,  0.5f, 0.0f}},
-        {{ 0.0f, -0.5f, 0.0f}},
+        {{-0.5f, 0.5f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}},
+        {{0.0f, -0.5f, 0.0f}},
     };
 
-    const std::vector<Airship::Mesh> meshes {
-        verticesA,
-        verticesB
-    };
+    const std::vector<Airship::Mesh> meshes{verticesA, verticesB};
 
     // TODO: Pull into application?
-    while(!window->shouldClose())
-    {
+    while (!window->shouldClose()) {
         window->pollEvents();
 
         // Draw code
