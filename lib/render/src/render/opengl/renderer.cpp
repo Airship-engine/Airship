@@ -1,3 +1,4 @@
+#define NOGDI
 
 #include "render/opengl/renderer.h"
 #include "GL/glcorearb.h"

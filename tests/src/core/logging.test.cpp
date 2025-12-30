@@ -11,10 +11,11 @@
 #ifdef _WIN32
 // Windows leaks a define for ERROR that clashes with log levels. We might need to
 // rename our log levels as lowercase if we need windows.h elsewhere. This is a workaround.
+
+// NOLINTBEGIN(misc-include-cleaner)
 #define NOGDI
 #define NOMINMAX
-#include <fileapi.h>
-#include <minwindef.h>
+#include <windows.h>
 #include <array>
 namespace {
     std::string create_temp_file() {
@@ -32,6 +33,7 @@ namespace {
         return std::string(temp_filename.data());
     }
 } // anonymous namespace
+// NOLINTEND(misc-include-cleaner)
 #else
 #include <unistd.h>
 #include <cerrno>
