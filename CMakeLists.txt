@@ -9,6 +9,8 @@ project(
     DESCRIPTION "Beginnings of a game engine"
 )
 
+MESSAGE(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
+
 # We require c++20 across this whole project
 add_library(AirshipCommonFlags INTERFACE)
 target_compile_features(AirshipCommonFlags INTERFACE cxx_std_20)
@@ -31,7 +33,6 @@ elseif(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
 else()
     message(FATAL_ERROR "Unsupported Compiler. Use GCC, Clang, or MSVC")
 endif()
-
 
 # Remove the unused ZERO_CHECK build target
 set(CMAKE_SUPPRESS_REGENERATION true)

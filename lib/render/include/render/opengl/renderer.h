@@ -3,6 +3,8 @@
 #include "core/utils.hpp"
 #include "render/color.h"
 
+#include <cstddef>
+#include <cstdint>
 #include <string>
 #include <vector>
 
@@ -24,10 +26,10 @@ namespace Airship {
         Mesh(const std::vector<Vertex> &vertices);
         void draw() const;
     private:
-        vao_id createVertexArrayObject() const;
+        [[nodiscard]] vao_id createVertexArrayObject() const;
         void bindVertexArrayObject() const;
 
-        buffer_id createBuffer() const;
+        [[nodiscard]] buffer_id createBuffer() const;
         void bindBuffer() const;
         void copyBuffer(size_t bytes, const void *data) const;
 
@@ -36,7 +38,7 @@ namespace Airship {
         int m_Count;
     };
     
-    enum class ShaderType {
+    enum class ShaderType : uint8_t {
         Vertex,
         Fragment
     };
@@ -47,20 +49,20 @@ namespace Airship {
         using shader_id = unsigned int;
         using program_id = unsigned int;
         void init();
-        void resize(int width, int height);
+        void resize(int width, int height) const;
         
-        shader_id createShader(ShaderType stype);
-        bool compileShader(shader_id sid, const char *source);
-        std::string getCompileLog(shader_id sid);
-        void deleteShader(shader_id sid);
+        [[nodiscard]] shader_id createShader(ShaderType stype) const;
+        bool compileShader(shader_id sid, const char *source) const;
+        [[nodiscard]] std::string getCompileLog(shader_id sid) const;
+        void deleteShader(shader_id sid) const;
         
-        program_id createProgram();
-        void attachShader(program_id pid, shader_id sid);
-        bool linkProgram(program_id pid);
-        std::string getLinkLog(program_id pid);
-        void bindProgram(program_id pid);
+        [[nodiscard]] program_id createProgram() const;
+        void attachShader(program_id pid, shader_id sid) const;
+        [[nodiscard]] bool linkProgram(program_id pid) const;
+        [[nodiscard]] std::string getLinkLog(program_id pid) const;
+        void bindProgram(program_id pid) const;
 
-        void draw(const std::vector<Mesh> &meshes);
+        void draw(const std::vector<Mesh> &meshes) const;
         void setClearColor(const RGBColor &color);
     private:
         Color m_ClearColor = Colors::Magenta;

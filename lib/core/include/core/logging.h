@@ -1,25 +1,32 @@
 #pragma once
 
-#if defined(NDEBUG)
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_OFF
-#else
-#define SPDLOG_ACTIVE_LEVEL SPDLOG_LEVEL_DEBUG
-#endif
+#include "spdlog/common.h"
+#include "spdlog/details/log_msg.h"
+#include "spdlog/logger.h"
+#include <algorithm>
+#include <cassert>
+#include <cstdint>
+#include <functional>
+#include <string_view>
+#include <sys/types.h>
+#include <unordered_map>
+#include <utility>
 
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/basic_file_sink.h"
 #include "spdlog/sinks/callback_sink.h"
 #include "spdlog/spdlog.h"
 
-#include <map>
 #include <memory>
 #include <string>
 
+// NOLINTBEGIN(cppcoreguidelines-macro-usage)
 #define SHIPLOG_DEBUG( ... ) SPDLOG_LOGGER_DEBUG(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_INFO( ... ) SPDLOG_LOGGER_INFO(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_ALERT( ... ) SPDLOG_LOGGER_WARN(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_ERROR( ... ) SPDLOG_LOGGER_ERROR(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_MAYDAY( ... ) SPDLOG_LOGGER_CRITICAL(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
+// NOLINTEND(cppcoreguidelines-macro-usage)
 
 namespace Airship
 {
@@ -27,7 +34,7 @@ namespace Airship
 class ShipLog
 {
 public:
-    enum class Level
+    enum class Level : uint8_t
     {
         DEBUG,
         INFO,
@@ -77,7 +84,7 @@ public:
         return true;
     }
 
-    bool AddListener(const std::string& name, std::function<void(Level level, const std::string_view)> listener, Level level)
+    bool AddListener(const std::string& name, const std::function<void(Level level, const std::string_view)>& listener, Level level)
     {
         if (m_ActiveSinks.contains(name))
             return false;
@@ -166,7 +173,7 @@ private:
         default:
             break;
         }
-        assert("Invalid log level");
+        assert(!"Invalid log level");
         return Level::INFO;
     }
 

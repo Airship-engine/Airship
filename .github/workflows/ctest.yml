@@ -9,11 +9,11 @@ on:
 
 jobs:
   build-and-run:
-    name: ${{ matrix.os }}/${{ matrix.config }}
+    name: ${{ matrix.os }}/${{ matrix.preset }}
     strategy:
       matrix:
         os: [ubuntu-24.04, windows-latest]
-        config: [debug, release]
+        preset: [debug, release]
         include:
         - os: ubuntu-24.04
           cc: clang-18
@@ -35,14 +35,14 @@ jobs:
         CC: ${{ matrix.cc }}
         CXX: ${{ matrix.cxx }}
       working-directory: ./build
-      run: cmake ../ -DBUILD_TESTS=ON -DBUILD_FOR_CI=ON -DCMAKE_BUILD_TYPE=${{ matrix.config }} -DCMAKE_EXPORT_COMPILE_COMMANDS=1
+      run: cmake ../ -DBUILD_FOR_CI=ON --preset ${{ matrix.preset }}
     - name: Output CMake Commands
-      working-directory: ./build
+      working-directory: ./build/${{ matrix.preset }}
       if: matrix.export-commands
       run: cat compile_commands.json
     - name: Build
-      working-directory: ./build
+      working-directory: ./build/${{ matrix.preset }}
       run: cmake --build .
     - name: Run tests
-      working-directory: ./build
-      run: ctest -C ${{ matrix.config }} --output-on-failure
+      working-directory: ./build/${{ matrix.preset }}
+      run: ctest -C ${{ matrix.preset }} --output-on-failure

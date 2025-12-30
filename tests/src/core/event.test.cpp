@@ -1,15 +1,16 @@
 #include "core/event.h"
 #include "gtest/gtest.h"
-#include "core/logging.h"
+#include <string_view>
+#include <vector>
 
 struct TestEvent  {};
 
 TEST(Event, Init) {
-    Airship::EventPublisher ep;
+    const Airship::EventPublisher ep;
     EXPECT_EQ(ep.SubscriberCount(), 0);
     EXPECT_EQ(ep.EventCount(), 0);
 
-    Airship::EventSubscriber es;
+    const Airship::EventSubscriber es;
     EXPECT_EQ(es.SubscribedCount(), 0);
 }
 TEST(Event, PublishSync) {
@@ -23,7 +24,7 @@ TEST(Event, PublishSync) {
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     EXPECT_EQ(count, 0);
-    es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& e) { ++count; });
+    es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& /*e*/) { ++count; });
     EXPECT_EQ(count, 0);
     EXPECT_EQ(es.SubscribedCount(), 1);
     EXPECT_EQ(ep.SubscriberCount(), 1);
@@ -44,7 +45,7 @@ TEST(Event, Publish) {
     EXPECT_EQ(es.SubscribedCount(), 0);
 
     int count = 0;
-    es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& e) { ++count; });
+    es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& /*e*/) { ++count; });
     EXPECT_EQ(count, 0);
     EXPECT_EQ(es.SubscribedCount(), 1);
     EXPECT_EQ(ep.SubscriberCount(), 1);
@@ -84,7 +85,7 @@ TEST(Event, CleanupSubscriber) {
         Airship::EventSubscriber es;
         EXPECT_EQ(es.SubscribedCount(), 0);
 
-        es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& e) { ++count; });
+        es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& /*e*/) { ++count; });
         EXPECT_EQ(count, 0);
         EXPECT_EQ(es.SubscribedCount(), 1);
         EXPECT_EQ(ep.SubscriberCount(), 1);
@@ -115,7 +116,7 @@ TEST(Event, CleanupPublisher) {
         EXPECT_EQ(ep.EventCount(), 0);
 
         int count = 0;
-        es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& e) { ++count; });
+        es.SubscribeTo<TestEvent>(ep, [&count](const TestEvent& /*e*/) { ++count; });
         EXPECT_EQ(count, 0);
         EXPECT_EQ(es.SubscribedCount(), 1);
         EXPECT_EQ(ep.SubscriberCount(), 1);

@@ -1,42 +1,56 @@
 #include "core/logging.h"
 #include "gtest/gtest.h"
 
-#include <cstdio>
 #include <fstream>
 #include <filesystem>
+#include <sstream>
+#include <stdexcept>
+#include <string>
 
 // Temporary filename creation has no platform-agnostic API
 #ifdef _WIN32
 // Windows leaks a define for ERROR that clashes with log levels. We might need to
 // rename our log levels as lowercase if we need windows.h elsewhere. This is a workaround.
-#define NOGDI
-#include <windows.h>
-std::string create_temp_file() {
-    char temp_path[MAX_PATH + 1];
-    DWORD path_len = GetTempPathA(MAX_PATH + 1, temp_path);
-    if (path_len == 0 || path_len > MAX_PATH + 1) {
-        throw std::runtime_error("Error getting temporary path.");
-    }
 
-    char temp_file_name[MAX_PATH + 1];
-    UINT unique_int = GetTempFileNameA(temp_path, "tmp", 0, temp_file_name);
-    if (unique_int == 0) {
-         throw std::runtime_error("Error getting temporary file name.");
+// NOLINTBEGIN(misc-include-cleaner)
+#define NOGDI
+#define NOMINMAX
+#include <windows.h>
+#include <array>
+namespace {
+    std::string create_temp_file() {
+        std::array<char, MAX_PATH+1> temp_path{};
+        DWORD path_len = GetTempPathA(temp_path.size(), temp_path.data());
+        if (path_len == 0 || path_len > MAX_PATH + 1) {
+            throw std::runtime_error("Error getting temporary path.");
+        }
+    
+        std::array<char, MAX_PATH+1> temp_filename{};
+        UINT unique_int = GetTempFileNameA(temp_path.data(), "tmp", 0, temp_filename.data());
+        if (unique_int == 0) {
+             throw std::runtime_error("Error getting temporary file name.");
+        }
+        return std::string(temp_filename.data());
     }
-    return temp_file_name;
-}
+} // anonymous namespace
+// NOLINTEND(misc-include-cleaner)
 #else
 #include <unistd.h>
-std::string create_temp_file() {
-    char template_[] = "/tmp/tempfile.XXXXXX";
-    int fd = mkstemp(template_);
-    if (fd == -1) {
-        throw std::runtime_error("Error creating temporary file: " + std::string(strerror(errno)));
+#include <cerrno>
+#include <stdlib.h> // NOLINT // mkstemp only guaranteed in stdlib.h on POSIX
+#include <cstring>
+namespace {
+    std::string create_temp_file() {
+        std::string template_ = "/tmp/tempfile.XXXXXX";
+        const int fd = mkstemp(template_.data());
+        if (fd == -1) {
+            throw std::runtime_error("Error creating temporary file: " + std::string(strerror(errno)));
+        }
+        // Close the file. This may leak empty files if the filename isn't used,
+        // but they're empty so this is acceptable for now.
+        close(fd);
+        return template_;
     }
-    // Close the file. This may leak empty files if the filename isn't used,
-    // but they're empty so this is acceptable for now.
-    close(fd);
-    return template_;
 }
 #endif
 
@@ -56,7 +70,7 @@ TEST(Logging, coutinfo)
 
 TEST(Logging, fileoutput)
 {
-    std::string filename = create_temp_file();
+    const std::string filename = create_temp_file();
     SHIPLOG_ERROR(filename);
 
     Airship::ShipLog::get().AddFileOutput("test log", filename, Airship::ShipLog::Level::ERROR);
@@ -66,7 +80,7 @@ TEST(Logging, fileoutput)
     ASSERT_TRUE(std::filesystem::exists(filename.c_str()));
 
     {
-        std::ifstream tmpFile(filename); // this is equivalent to the above method
+        const std::ifstream tmpFile(filename); // this is equivalent to the above method
         if(!tmpFile.good())
         {
             FAIL() << "Failed to open the tmpfile: " << filename;
@@ -85,7 +99,7 @@ TEST(Logging, fileoutput)
     Airship::ShipLog::get().RemoveOutput("test log");
 
     {
-        std::ifstream tmpFile(filename); // this is equivalent to the above method
+        const std::ifstream tmpFile(filename); // this is equivalent to the above method
         if(!tmpFile.good())
         {
             FAIL() << "Failed to open the tmpfile: " << filename;

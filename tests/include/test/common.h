@@ -1,21 +1,23 @@
 #include "core/application.h"
+#include "core/logging.h"
+#include "core/window.h"
 
 #include "gtest/gtest.h"
-#include "spdlog/spdlog.h"
+#include <optional>
+#include <string_view>
 
-namespace Airship
-{
-namespace Test
+
+namespace Airship::Test
 {
 
 class AirshipTestEnvironment : public ::testing::Environment 
 {
 public:
-    ~AirshipTestEnvironment() override {}
+    ~AirshipTestEnvironment() override = default;
 
     void SetUp() override 
     {
-        Airship::ShipLog::get().AddListener("Test Game Log", [](Airship::ShipLog::Level level, std::string_view msg) {
+        Airship::ShipLog::get().AddListener("Test Game Log", [](Airship::ShipLog::Level /*level*/, std::string_view /*msg*/) {
             // If we ever log an error, this will cause the test to fail
             FAIL();
         }, Airship::ShipLog::Level::ERROR);
@@ -23,7 +25,8 @@ public:
 };
 
 // Initialize the airship test environment
-#if !defined(DISABLE_TEST_ENVIRONMENT)
+#ifndef DISABLE_TEST_ENVIRONMENT
+//NOLINTNEXTLINE // non-const global variable
 extern const ::testing::Environment* airship_environment;
 #endif
 
@@ -32,7 +35,7 @@ class GameClass : public Airship::Application
 public:
     GameClass() = default;
     GameClass(int height, int width) : height(height), width(width) {}
-    const std::optional<Airship::Window*> GetWindow() const { return win; }
+    [[nodiscard]] std::optional<Airship::Window*> GetWindow() const { return win; }
 protected:
     void OnStart() override;
 
@@ -40,5 +43,5 @@ protected:
     std::optional<Airship::Window*> win;
 };
 
-} // namespace Test
-} // namespace Airship
+} // namespace Airship::Test
+
