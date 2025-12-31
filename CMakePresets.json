@@ -2,6 +2,11 @@
   "version": 6,
   "configurePresets": [
     {
+      "name": "gen:msvc",
+      "hidden": true,
+      "generator": "Visual Studio 17 2022"
+    },
+    {
       "name": "gen:ninja",
       "hidden": true,
       "generator": "Ninja"
@@ -10,8 +15,7 @@
       "name": "comp:clang",
       "hidden": true,
       "cacheVariables": {
-        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake",
-        "CMAKE_EXPORT_COMPILE_COMMANDS": "ON"
+        "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake"
       }
     },
     {
@@ -76,7 +80,7 @@
       "inherits": "root",
       "hidden": true,
       "targets": [
-        "Airship",
+        "AllAirshipLibs",
         "AirshipTests"
       ]
     },
@@ -93,7 +97,8 @@
       "description": "Build library",
       "displayName": "Library",
       "inherits": "lib",
-      "configurePreset": "debug"
+      "configurePreset": "debug",
+      "verbose":  true
     },
     {
       "name": "debug-examples",
@@ -107,7 +112,8 @@
       "description": "Build library",
       "displayName": "Library",
       "inherits": "lib",
-      "configurePreset": "debugOpt"
+      "configurePreset": "debugOpt",
+      "verbose":  true
     },
     {
       "name": "debugopt-examples",

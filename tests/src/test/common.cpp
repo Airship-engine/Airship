@@ -1,7 +1,5 @@
 #include "test/common.h"
 
-#include <gtest/gtest.h>
-
 namespace Airship::Test {
 
 #ifndef DISABLE_TEST_ENVIRONMENT

@@ -2,6 +2,7 @@
 include(GoogleTest)
 
 add_custom_target(AirshipTests)
+set_target_properties(AirshipTests PROPERTIES FOLDER "Tests")
 
 function(airship_test TARGET_NAME SOURCE_LIST)
     # Optional argument DISABLE_ENVIRONMENT disables the airship testbed for sensitive tests that knowingly go into bad states.
@@ -11,12 +12,19 @@ function(airship_test TARGET_NAME SOURCE_LIST)
     cmake_parse_arguments(airship_test "${options}" "" "${list_options}" ${ARGN})
 
     if(BUILD_TESTS)
-        add_executable(${TARGET_NAME} "${SOURCE_LIST}")
+        add_executable(${TARGET_NAME} 
+            "${SOURCE_LIST}" 
+            ${PROJECT_SOURCE_DIR}/tests/src/test/common.cpp 
+            ${PROJECT_SOURCE_DIR}/tests/include/test/common.h
+        )
+        enable_clang_tidy(${TARGET_NAME})
+        set_target_properties(${TARGET_NAME} PROPERTIES FOLDER "Tests")
 
         target_link_libraries(${TARGET_NAME}
             PRIVATE
+                AirshipCore
                 AirshipCommonFlags
-                AirshipTestUtils
+                GTest::gtest_main
                 ${airship_test_DEPENDS}
         )
         target_include_directories(${TARGET_NAME}
@@ -31,7 +39,6 @@ function(airship_test TARGET_NAME SOURCE_LIST)
     endif()
 endfunction()
 
-add_subdirectory(src/test)
 add_subdirectory(src/core)
 add_subdirectory(src/render)
 
