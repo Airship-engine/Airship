@@ -14,11 +14,6 @@ endfunction()
 
 get_all_targets(${CMAKE_CURRENT_SOURCE_DIR} _old_targets)
 
-if (BUILD_TESTS)
-    set(INSTALL_GTEST OFF)
-    add_subdirectory(googletest)
-endif()
-
 set(SPDLOG_INSTALL OFF)
 set(SPDLOG_USE_STD_FORMAT ON)
 add_subdirectory(spdlog)
@@ -33,9 +28,23 @@ endif()
 add_subdirectory(glfw)
 
 if (NOT OPENGL_DISABLED)
-    # Add gl3w - generated files added to the build/ directory
     set(OpenGL_GL_PREFERENCE LEGACY)
-    add_subdirectory(gl3w)
+
+    include(FetchContent)
+
+    FetchContent_Declare(
+        gl3w
+        GIT_REPOSITORY https://github.com/skaslev/gl3w
+        GIT_TAG master
+        GIT_SHALLOW TRUE
+        GIT_PROGRESS TRUE
+    )
+
+    FetchContent_MakeAvailable(gl3w)
+
+    target_include_directories(gl3w SYSTEM INTERFACE
+        $<BUILD_INTERFACE:${gl3w_BINARY_DIR}/include>
+    )
 endif()
 
 get_all_targets(${CMAKE_CURRENT_SOURCE_DIR} _new_targets)
