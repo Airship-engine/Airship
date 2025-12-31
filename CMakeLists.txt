@@ -14,6 +14,16 @@ MESSAGE(STATUS "Using toolchain file: ${CMAKE_TOOLCHAIN_FILE}")
 # We require c++20 across this whole project
 add_library(AirshipCommonFlags INTERFACE)
 target_compile_features(AirshipCommonFlags INTERFACE cxx_std_20)
+target_compile_options(AirshipCommonFlags INTERFACE
+  $<$<CXX_COMPILER_ID:MSVC>:/W4 /WX>
+  $<$<NOT:$<CXX_COMPILER_ID:MSVC>>:-Wall -Wextra -Wpedantic -Werror>
+)
+
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/cmake")
+
+option(CLANG_TIDY "Enable clang-tidy static analysis" OFF)
+include(clang-tidy)
+
 # Check for minimum compiler versions
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
     # GCC 13+ required for std::format
@@ -36,10 +46,6 @@ endif()
 
 # Remove the unused ZERO_CHECK build target
 set(CMAKE_SUPPRESS_REGENERATION true)
-
-# We require c++20 across this whole project
-set_property(GLOBAL PROPERTY CXX_STANDARD 20)
-set_property(GLOBAL PROPERTY CXX_STANDARD_REQUIRED true)
 
 option(BUILD_FOR_CI "Build a CI version of the library" OFF)
 option(OPENGL_DISABLED "Disallow the renderer to use the OpenGL API" FALSE)
