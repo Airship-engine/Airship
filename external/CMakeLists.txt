@@ -50,9 +50,9 @@ endif()
 get_all_targets(${CMAKE_CURRENT_SOURCE_DIR} _new_targets)
 
 set(EXTERNAL_TARGET_FOLDER "ThirdParty" CACHE STRING "Set default folder location for third party targets")
-message("Target folder: ${EXTERNAL_TARGET_FOLDER}")
+message(STATUS "Third-party target folder: ${EXTERNAL_TARGET_FOLDER}")
 
-# Move all external targets to ThirdParty/
+# Move all external targets to one IDE folder
 foreach (t IN LISTS _new_targets)
     if (NOT t IN_LIST _old_targets)
         get_target_property(f ${t} FOLDER)

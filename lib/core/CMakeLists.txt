@@ -30,12 +30,10 @@ target_sources(AirshipCore PUBLIC FILE_SET HEADERS
     FILES ${AirshipCoreHeaders}
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src/core
-    PREFIX ""
     FILES
         ${AirshipCoreSources}
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include/core
-    PREFIX ""
     FILES
         ${AirshipCoreHeaders}
 )

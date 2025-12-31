@@ -3,6 +3,15 @@ add_subdirectory(render)
 
 add_library(Airship INTERFACE)
 
-target_link_libraries(Airship INTERFACE AirshipCore AirshipRenderer)
+set(AirshipLibs 
+    AirshipCore
+    AirshipRenderer
+)
+
+# Target to link against for dependency tracking
+target_link_libraries(Airship INTERFACE ${AirshipLibs})
+
+# Preset utility target
 add_custom_target(AllAirshipLibs)
-add_dependencies(AllAirshipLibs AirshipCore AirshipRenderer)
+add_dependencies(AllAirshipLibs ${AirshipLibs})
+

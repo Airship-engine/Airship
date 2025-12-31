@@ -34,12 +34,10 @@ target_sources(AirshipRenderer PUBLIC FILE_SET HEADERS
     FILES ${AirshipRendererHeaders}
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src/render
-    PREFIX ""
     FILES
         ${AirshipRendererSources}
 )
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/include/render
-    PREFIX ""
     FILES
         ${AirshipRendererHeaders}
 )

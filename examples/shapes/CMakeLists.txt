@@ -4,7 +4,6 @@ target_link_libraries(ShapesExample
     PUBLIC
         Airship
 )
-add_dependencies(AirshipExamples ShapesExample)
 
 set(ShapesExampleSources
     main.cpp
