@@ -89,7 +89,9 @@ public:
     void bindProgram(program_id pid) const;
 
     template <typename VertexT>
-    void draw(std::vector<Mesh<VertexT>>& meshes) const;
+    void draw(std::vector<Mesh<VertexT>>& meshes, bool clear = true) const;
+    template <typename VertexT>
+    void draw(Mesh<VertexT>& meshes, bool clear = true) const;
     void setClearColor(const RGBColor& color);
 
 private:
