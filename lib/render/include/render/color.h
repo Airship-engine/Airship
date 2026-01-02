@@ -7,7 +7,7 @@ namespace Airship {
 struct HSVColor;
 
 struct RGBColor {
-
+    constexpr RGBColor() = default;
     constexpr RGBColor(float r, float g, float b, float a = 1.0f) : r(r), g(g), b(b), a(a) {}
     RGBColor(const HSVColor& hsv);
 
@@ -34,7 +34,8 @@ struct RGBColor {
 using Color = RGBColor;
 
 struct HSVColor {
-    HSVColor(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
+    constexpr HSVColor() = default;
+    constexpr HSVColor(float h, float s, float v, float a = 1.0f) : h(h), s(s), v(v), a(a) {}
     HSVColor(const RGBColor& rgb);
 
     float h, s, v, a;
