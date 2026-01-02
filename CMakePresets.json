@@ -97,7 +97,8 @@
             "inherits": "root",
             "hidden": true,
             "targets": [
-                "AirshipExamples"
+                "AirshipExamples",
+                "AirshipTests"
             ]
         },
         {
