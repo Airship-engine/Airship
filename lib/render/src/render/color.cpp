@@ -82,8 +82,7 @@ RGBColor normalizeClamp(const RGBColor& color) {
 }
 
 RGBColor normalizeScale(const RGBColor& color) {
-    float div = std::max(color.r, color.g);
-    div = std::max(div, color.b);
+    float div = std::max({color.r, color.g, color.b});
     const float newR = color.r / div;
     const float newG = color.g / div;
     const float newB = color.b / div;
@@ -123,18 +122,19 @@ HSVColor::HSVColor(const RGBColor& rgb) : h(0.0f), a(rgb.a) {
 }
 
 RGBColor::RGBColor(const HSVColor& hsv) : a(hsv.a) {
+    auto h = std::fmod(hsv.h, 360.0f);
     const float chroma = hsv.s * hsv.v;
-    auto X = static_cast<float>(chroma * (1 - std::abs(std::fmod(hsv.h / 60, 2) - 1)));
+    auto X = static_cast<float>(chroma * (1 - std::abs(std::fmod(h / 60, 2) - 1)));
     const float m = hsv.v - chroma;
-    if (hsv.h < 60)
+    if (h < 60)
         r = chroma, g = X, b = 0;
-    else if (hsv.h < 120)
+    else if (h < 120)
         r = X, g = chroma, b = 0;
-    else if (hsv.h < 180)
+    else if (h < 180)
         r = 0, g = chroma, b = X;
-    else if (hsv.h < 240)
+    else if (h < 240)
         r = 0, g = X, b = chroma;
-    else if (hsv.h < 300)
+    else if (h < 300)
         r = X, g = 0, b = chroma;
     else
         r = chroma, g = 0, b = X;
