@@ -121,7 +121,7 @@ std::string Renderer::getCompileLog(shader_id sid) const {
     int len;
     glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
-    ret.reserve(len);
+    ret.resize(len);
     glGetShaderInfoLog(sid, len, nullptr, ret.data());
     return ret;
 }
@@ -149,7 +149,7 @@ std::string Renderer::getLinkLog(program_id pid) const {
     int len;
     glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
-    ret.reserve(len);
+    ret.resize(len);
     glGetProgramInfoLog(pid, len, nullptr, ret.data());
     return ret;
 }
