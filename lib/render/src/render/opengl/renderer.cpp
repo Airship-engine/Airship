@@ -2,6 +2,7 @@
 
 #include "render/opengl/renderer.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -45,20 +46,24 @@ void Vertex::enableVertexAttribArray(int idx) {
 }
 
 Mesh::Mesh(const std::vector<Vertex>& vertices) :
-    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()),
-    m_Count(static_cast<int>(vertices.size())) {
+    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()), m_Vertices(vertices) {
     bindVertexArrayObject();
-
     bindBuffer();
-    copyBuffer(vertices.size() * sizeof(Vertex), vertices.data());
 
     Vertex::setAttribData();
 }
 
-void Mesh::draw() const {
+void Mesh::draw() {
+    auto numVertices = m_Vertices.size();
+    assert(numVertices % 3 == 0);
     const int off = 0; // Maybe used, maybe always 0?
     bindVertexArrayObject();
-    glDrawArrays(GL_TRIANGLES, off, m_Count);
+    if (m_Invalid) {
+        bindBuffer();
+        copyBuffer(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
+        m_Invalid = false;
+    }
+    glDrawArrays(GL_TRIANGLES, off, numVertices);
 }
 
 Mesh::vao_id Mesh::createVertexArrayObject() const {
@@ -153,7 +158,7 @@ void Renderer::bindProgram(program_id pid) const {
     glUseProgram(pid);
 }
 
-void Renderer::draw(const std::vector<Mesh>& meshes) const {
+void Renderer::draw(std::vector<Mesh>& meshes) const {
     glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
     for (const auto& mesh : meshes)
