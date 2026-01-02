@@ -72,7 +72,7 @@ protected:
 
         // Normalized device coordinates (NDC)
         // (-1,-1) lower-left corner, (1,1) upper-right
-        using VertexData = std::vector<Airship::Vertex>;
+        using VertexData = std::vector<Airship::VertexP>;
         VertexData verticesA = {
             {{-0.5f, -0.5f, 0.0f}},
             {{0.5f, -0.5f, 0.0f}},
@@ -85,7 +85,7 @@ protected:
             {{0.0f, -0.5f, 0.0f}},
         };
 
-        std::vector<Airship::Mesh> meshes{verticesA, verticesB};
+        std::vector<Airship::Mesh<Airship::VertexP>> meshes{verticesA, verticesB};
 
         // TODO: Pull into application?
         while (!m_MainWin.value()->shouldClose()) {
