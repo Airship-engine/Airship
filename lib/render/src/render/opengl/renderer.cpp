@@ -174,11 +174,22 @@ void Renderer::bindProgram(program_id pid) const {
 }
 
 template <typename VertexT>
-void Renderer::draw(std::vector<Mesh<VertexT>>& meshes) const {
-    glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-    for (const auto& mesh : meshes)
+void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, bool clear) const {
+    if (clear) {
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    for (auto& mesh : meshes)
         mesh.draw();
+}
+
+template <typename VertexT>
+void Renderer::draw(Mesh<VertexT>& mesh, bool clear) const {
+    if (clear) {
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    mesh.draw();
 }
 
 void Renderer::setClearColor(const RGBColor& color) {
@@ -188,7 +199,9 @@ void Renderer::setClearColor(const RGBColor& color) {
 // Explicit instantiations
 template struct Mesh<VertexP>;
 template struct Mesh<VertexPC>;
-template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&) const;
-template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&) const;
+template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, bool) const;
+template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, bool) const;
+template void Renderer::draw<VertexP>(Mesh<VertexP>&, bool) const;
+template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, bool) const;
 
 } // namespace Airship
