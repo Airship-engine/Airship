@@ -82,7 +82,7 @@ TEST(Renderer, Init) {
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
-    using VertexData = std::vector<Airship::Vertex>;
+    using VertexData = std::vector<Airship::VertexP>;
     const VertexData verticesA = {
         {{-0.5f, -0.5f, 0.0f}},
         {{0.5f, -0.5f, 0.0f}},
@@ -95,7 +95,7 @@ TEST(Renderer, Init) {
         {{0.0f, -0.5f, 0.0f}},
     };
 
-    const std::vector<Airship::Mesh> meshes{verticesA, verticesB};
+    std::vector<Airship::Mesh<Airship::VertexP>> meshes{verticesA, verticesB};
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {
