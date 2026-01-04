@@ -69,22 +69,27 @@ enum class ShaderType : uint8_t {
     Fragment
 };
 
+class Shader {
+    using shader_id = unsigned int;
+
+public:
+    Shader(ShaderType type, const std::string& source);
+    [[nodiscard]] shader_id get() const { return m_ShaderID; }
+    ~Shader();
+
+private:
+    [[nodiscard]] std::string getCompileLog() const;
+    shader_id m_ShaderID;
+};
+
 class Renderer {
 public:
     Renderer() = default;
-    using shader_id = unsigned int;
     using program_id = unsigned int;
     void init();
     void resize(int width, int height) const;
 
-    [[nodiscard]] shader_id createShader(ShaderType stype) const;
-    bool compileShader(shader_id sid, const char* source) const;
-    [[nodiscard]] std::string getCompileLog(shader_id sid) const;
-    void deleteShader(shader_id sid) const;
-
-    [[nodiscard]] program_id createProgram() const;
-    void attachShader(program_id pid, shader_id sid) const;
-    [[nodiscard]] bool linkProgram(program_id pid) const;
+    [[nodiscard]] program_id createPipeline(const Shader& vShader, const Shader& fShader) const;
     [[nodiscard]] std::string getLinkLog(program_id pid) const;
     void bindProgram(program_id pid) const;
 

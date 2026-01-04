@@ -10,7 +10,6 @@
 #include <vector>
 
 #include "color.h"
-#include "logging.h"
 #include "opengl/renderer.h"
 #include "utils.hpp"
 
@@ -145,51 +144,14 @@ void Game::OnStart() {
         m_Width = width;
     });
 
-    Airship::Renderer::program_id triangles_pid = m_Renderer.createProgram();
-    Airship::Renderer::program_id bg_pid = m_Renderer.createProgram();
-
-    Airship::Renderer::shader_id vs_id = m_Renderer.createShader(Airship::ShaderType::Vertex);
-    bool ok = m_Renderer.compileShader(vs_id, vertexShaderSource);
-    if (!ok) {
-        std::string log = m_Renderer.getCompileLog(vs_id);
-        SHIPLOG_ERROR(log);
-        return;
+    Airship::Renderer::program_id triangles_pid, bg_pid;
+    {
+        Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
+        Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
+        Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
+        triangles_pid = m_Renderer.createPipeline(vertexShader, triangleFragmentShader);
+        bg_pid = m_Renderer.createPipeline(vertexShader, bgFragmentShader);
     }
-    m_Renderer.attachShader(triangles_pid, vs_id);
-    m_Renderer.attachShader(bg_pid, vs_id);
-
-    Airship::Renderer::shader_id triangle_fs_id = m_Renderer.createShader(Airship::ShaderType::Fragment);
-    ok = m_Renderer.compileShader(triangle_fs_id, triangleFragmentShaderSource);
-    if (!ok) {
-        std::string log = m_Renderer.getCompileLog(triangle_fs_id);
-        SHIPLOG_ERROR(log);
-        return;
-    }
-    m_Renderer.attachShader(triangles_pid, triangle_fs_id);
-
-    Airship::Renderer::shader_id bg_fs_id = m_Renderer.createShader(Airship::ShaderType::Fragment);
-    ok = m_Renderer.compileShader(bg_fs_id, bgFragmentShaderSource);
-    if (!ok) {
-        std::string log = m_Renderer.getCompileLog(bg_fs_id);
-        SHIPLOG_ERROR(log);
-        return;
-    }
-    m_Renderer.attachShader(bg_pid, bg_fs_id);
-
-    ok = m_Renderer.linkProgram(triangles_pid);
-    if (!ok) {
-        std::string log = m_Renderer.getLinkLog(triangles_pid);
-        SHIPLOG_ERROR(log);
-    }
-
-    ok = m_Renderer.linkProgram(bg_pid);
-    if (!ok) {
-        std::string log = m_Renderer.getLinkLog(bg_pid);
-        SHIPLOG_ERROR(log);
-    }
-    m_Renderer.deleteShader(vs_id);
-    m_Renderer.deleteShader(triangle_fs_id);
-    m_Renderer.deleteShader(bg_fs_id);
 
     auto bgMesh = Airship::Mesh<Airship::VertexPC>();
     auto triangleMesh = Airship::Mesh<Airship::VertexPC>();
