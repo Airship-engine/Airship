@@ -120,44 +120,45 @@ void Renderer::resize(int width, int height) const {
     glViewport(0, 0, width, height);
 }
 
-Renderer::shader_id Renderer::createShader(ShaderType stype) const {
-    return glCreateShader(toGL(stype));
-}
-
-bool Renderer::compileShader(shader_id sid, const char* source) const {
-    glShaderSource(sid, 1, &source, nullptr);
-    glCompileShader(sid);
+Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreateShader(toGL(stype))) {
+    const char* src = source.c_str();
+    glShaderSource(m_ShaderID, 1, &src, nullptr);
+    glCompileShader(m_ShaderID);
     int ok;
-    glGetShaderiv(sid, GL_COMPILE_STATUS, &ok);
-    return ok == GL_TRUE;
+    glGetShaderiv(m_ShaderID, GL_COMPILE_STATUS, &ok);
+    if (ok != GL_TRUE) {
+        std::string log = getCompileLog();
+        SHIPLOG_ERROR(log);
+    }
+    assert(ok == GL_TRUE);
 }
 
-std::string Renderer::getCompileLog(shader_id sid) const {
+std::string Shader::getCompileLog() const {
     int len;
-    glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &len);
+    glGetShaderiv(m_ShaderID, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
     ret.resize(len);
-    glGetShaderInfoLog(sid, len, nullptr, ret.data());
+    glGetShaderInfoLog(m_ShaderID, len, nullptr, ret.data());
     return ret;
 }
 
-void Renderer::deleteShader(shader_id sid) const {
-    glDeleteShader(sid);
+Shader::~Shader() {
+    glDeleteShader(m_ShaderID);
 }
 
-Renderer::program_id Renderer::createProgram() const {
-    return glCreateProgram();
-}
-
-void Renderer::attachShader(program_id pid, shader_id sid) const {
-    glAttachShader(pid, sid);
-}
-
-bool Renderer::linkProgram(program_id pid) const {
+Renderer::program_id Renderer::createPipeline(const Shader& vShader, const Shader& fShader) const {
+    program_id pid = glCreateProgram();
+    glAttachShader(pid, vShader.get());
+    glAttachShader(pid, fShader.get());
     glLinkProgram(pid);
     int ok;
     glGetProgramiv(pid, GL_LINK_STATUS, &ok);
-    return ok == GL_TRUE;
+    if (ok != GL_TRUE) {
+        std::string log = getLinkLog(pid);
+        SHIPLOG_ERROR(log);
+    }
+    assert(ok == GL_TRUE);
+    return pid;
 }
 
 std::string Renderer::getLinkLog(program_id pid) const {

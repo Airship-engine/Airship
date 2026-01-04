@@ -3,7 +3,6 @@
 #include <vector>
 
 #include "core/application.h"
-#include "core/logging.h"
 #include "core/window.h"
 #include "render/opengl/renderer.h"
 
@@ -34,13 +33,6 @@ protected:
             "}\0";
         // clang-format on
 
-        Airship::Renderer::shader_id vs_id = m_Renderer.createShader(Airship::ShaderType::Vertex);
-        bool ok = m_Renderer.compileShader(vs_id, vertexShaderSource);
-        if (!ok) {
-            std::string log = m_Renderer.getCompileLog(vs_id);
-            SHIPLOG_ERROR(log);
-        }
-
         // clang-format off
         const char* fragmentShaderSource =
             "#version 330 core\n"
@@ -51,24 +43,13 @@ protected:
             "}\0";
         // clang-format on
 
-        Airship::Renderer::shader_id fs_id = m_Renderer.createShader(Airship::ShaderType::Fragment);
-        ok = m_Renderer.compileShader(fs_id, fragmentShaderSource);
-        if (!ok) {
-            std::string log = m_Renderer.getCompileLog(fs_id);
-            SHIPLOG_ERROR(log);
-            return;
+        Airship::Renderer::program_id pid;
+        {
+            // Shaders can be deleted after pipeline creation
+            Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
+            Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
+            pid = m_Renderer.createPipeline(vertexShader, fragmentShader);
         }
-
-        Airship::Renderer::program_id pid = m_Renderer.createProgram();
-        m_Renderer.attachShader(pid, vs_id);
-        m_Renderer.attachShader(pid, fs_id);
-        ok = m_Renderer.linkProgram(pid);
-        if (!ok) {
-            std::string log = m_Renderer.getLinkLog(fs_id);
-            SHIPLOG_ERROR(log);
-        }
-        m_Renderer.deleteShader(vs_id);
-        m_Renderer.deleteShader(fs_id);
 
         // Normalized device coordinates (NDC)
         // (-1,-1) lower-left corner, (1,1) upper-right
