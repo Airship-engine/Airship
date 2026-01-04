@@ -29,10 +29,21 @@ struct VertexPC {
     Color m_Color;
 };
 
+// RAII buffer wrapper
+struct Buffer {
+    using buffer_id = unsigned int;
+    Buffer();
+    [[nodiscard]] buffer_id get() const { return m_BufferID; }
+    void bind() const;
+    void update(size_t bytes, const void* data) const;
+
+private:
+    buffer_id m_BufferID;
+};
+
 template <typename VertexT>
 struct Mesh {
     using vao_id = unsigned int;
-    using buffer_id = unsigned int;
     Mesh(const std::vector<VertexT>& vertices);
     Mesh();
     VertexT& addVertex() {
@@ -55,12 +66,8 @@ private:
     [[nodiscard]] vao_id createVertexArrayObject() const;
     void bindVertexArrayObject() const;
 
-    [[nodiscard]] buffer_id createBuffer() const;
-    void bindBuffer() const;
-    void copyBuffer(size_t bytes, const void* data) const;
-
     vao_id m_VertexArrayObject;
-    buffer_id m_BufferArrayObject;
+    Buffer m_VertexBuffer;
     std::vector<VertexT> m_Vertices;
     bool m_Invalid = true;
 };
