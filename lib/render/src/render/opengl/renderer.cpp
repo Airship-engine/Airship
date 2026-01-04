@@ -51,12 +51,12 @@ void VertexPC::setAttribData() {
 
 template <typename VertexT>
 Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) :
-    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()), m_Vertices(vertices) {
+    m_VertexArrayObject(createVertexArrayObject()), m_Vertices(vertices) {
     bindVertexArrayObject();
-    bindBuffer();
+    m_VertexBuffer.bind();
 
     VertexT::setAttribData();
-    glBindVertexBuffer(0, m_BufferArrayObject, 0, sizeof(VertexT));
+    glBindVertexBuffer(0, m_VertexBuffer.get(), 0, sizeof(VertexT));
 }
 
 template <typename VertexT>
@@ -69,8 +69,7 @@ void Mesh<VertexT>::draw() {
     const int off = 0; // Maybe used, maybe always 0?
     bindVertexArrayObject();
     if (m_Invalid) {
-        bindBuffer();
-        copyBuffer(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
+        m_VertexBuffer.update(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
         m_Invalid = false;
     }
     glDrawArrays(GL_TRIANGLES, off, numVertices);
@@ -89,24 +88,20 @@ void Mesh<VertexT>::bindVertexArrayObject() const {
     glBindVertexArray(m_VertexArrayObject);
 }
 
-template <typename VertexT>
-Mesh<VertexT>::buffer_id Mesh<VertexT>::createBuffer() const {
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+Buffer::Buffer() {
     // TODO: allow batch creation of buffers
-    buffer_id ret;
-    glGenBuffers(1, &ret);
-    return ret;
+    glGenBuffers(1, &m_BufferID);
 }
 
-template <typename VertexT>
-void Mesh<VertexT>::bindBuffer() const {
-    glBindBuffer(GL_ARRAY_BUFFER, m_BufferArrayObject);
+void Buffer::bind() const {
+    glBindBuffer(GL_ARRAY_BUFFER, m_BufferID);
 }
 
-template <typename VertexT>
-void Mesh<VertexT>::copyBuffer(size_t bytes, const void* data) const {
+void Buffer::update(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
-    glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
+    glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
 }
 
 void Renderer::init() {
