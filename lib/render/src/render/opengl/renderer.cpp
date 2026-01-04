@@ -146,32 +146,36 @@ Shader::~Shader() {
     glDeleteShader(m_ShaderID);
 }
 
-Renderer::program_id Renderer::createPipeline(const Shader& vShader, const Shader& fShader) const {
-    program_id pid = glCreateProgram();
-    glAttachShader(pid, vShader.get());
-    glAttachShader(pid, fShader.get());
-    glLinkProgram(pid);
+Pipeline::Pipeline(const Shader& vShader, const Shader& fShader) : m_ProgramID(glCreateProgram()) {
+    glAttachShader(m_ProgramID, vShader.get());
+    glAttachShader(m_ProgramID, fShader.get());
+    glLinkProgram(m_ProgramID);
     int ok;
-    glGetProgramiv(pid, GL_LINK_STATUS, &ok);
+    glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &ok);
     if (ok != GL_TRUE) {
-        std::string log = getLinkLog(pid);
+        std::string log = getLinkLog();
         SHIPLOG_ERROR(log);
     }
     assert(ok == GL_TRUE);
-    return pid;
 }
 
-std::string Renderer::getLinkLog(program_id pid) const {
+std::string Pipeline::getLinkLog() const {
     int len;
-    glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &len);
+    glGetProgramiv(m_ProgramID, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
     ret.resize(len);
-    glGetProgramInfoLog(pid, len, nullptr, ret.data());
+    glGetProgramInfoLog(m_ProgramID, len, nullptr, ret.data());
     return ret;
 }
 
-void Renderer::bindProgram(program_id pid) const {
-    glUseProgram(pid);
+void Pipeline::bind() const {
+    assert(m_ProgramID != 0);
+    glUseProgram(m_ProgramID);
+}
+
+Pipeline::~Pipeline() {
+    glDeleteProgram(m_ProgramID);
+    m_ProgramID = 0;
 }
 
 template <typename VertexT>

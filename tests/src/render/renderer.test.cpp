@@ -57,8 +57,8 @@ TEST(Renderer, Init) {
     EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    Airship::Renderer::program_id pid;
-    EXPECT_NO_THROW(pid = r.createPipeline(vertexShader, fragmentShader));
+    EXPECT_NO_THROW(Airship::Pipeline pipeline = Airship::Pipeline(vertexShader, fragmentShader));
+    Airship::Pipeline pipeline = Airship::Pipeline(vertexShader, fragmentShader);
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
@@ -82,7 +82,7 @@ TEST(Renderer, Init) {
         window->pollEvents();
 
         // Draw code
-        r.bindProgram(pid);
+        pipeline.bind();
         r.draw(meshes);
 
         // Show the rendered buffer

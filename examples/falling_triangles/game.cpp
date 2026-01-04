@@ -7,6 +7,7 @@
 #include <numbers>
 #include <random>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "color.h"
@@ -82,6 +83,13 @@ const char* const bgFragmentShaderSource =
 // clang-format on
 
 namespace {
+std::tuple<Airship::Pipeline, Airship::Pipeline> createPipelines() {
+    Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
+    Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
+    Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
+    return {Airship::Pipeline(vertexShader, triangleFragmentShader), Airship::Pipeline(vertexShader, bgFragmentShader)};
+}
+
 float randomRange(float min, float max) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -144,14 +152,7 @@ void Game::OnStart() {
         m_Width = width;
     });
 
-    Airship::Renderer::program_id triangles_pid, bg_pid;
-    {
-        Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
-        Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
-        Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
-        triangles_pid = m_Renderer.createPipeline(vertexShader, triangleFragmentShader);
-        bg_pid = m_Renderer.createPipeline(vertexShader, bgFragmentShader);
-    }
+    auto [triangles_pipeline, bg_pipeline] = createPipelines();
 
     auto bgMesh = Airship::Mesh<Airship::VertexPC>();
     auto triangleMesh = Airship::Mesh<Airship::VertexPC>();
@@ -229,10 +230,10 @@ void Game::OnStart() {
         m_MainWin->pollEvents();
 
         // Draw code
-        m_Renderer.bindProgram(bg_pid);
+        bg_pipeline.bind();
         m_Renderer.draw(bgMesh);
 
-        m_Renderer.bindProgram(triangles_pid);
+        triangles_pipeline.bind();
         m_Renderer.draw(triangleMesh, false);
 
         // Show the rendered buffer

@@ -6,6 +6,29 @@
 #include "core/window.h"
 #include "render/opengl/renderer.h"
 
+// clang-format off
+const char* const vertexShaderSource =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char* const fragmentShaderSource =
+    "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+// clang-format on
+
+inline Airship::Pipeline createPipeline() {
+    Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
+    Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
+    return Airship::Pipeline(vertexShader, fragmentShader);
+}
 class Game : public Airship::Application {
 public:
     Game() = default;
@@ -23,33 +46,7 @@ protected:
             m_Width = width;
         });
 
-        // clang-format off
-        const char* vertexShaderSource =
-            "#version 330 core\n"
-            "layout (location = 0) in vec3 aPos;\n"
-            "void main()\n"
-            "{\n"
-            "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-            "}\0";
-        // clang-format on
-
-        // clang-format off
-        const char* fragmentShaderSource =
-            "#version 330 core\n"
-            "out vec4 FragColor;\n"
-            "void main()\n"
-            "{\n"
-            "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-            "}\0";
-        // clang-format on
-
-        Airship::Renderer::program_id pid;
-        {
-            // Shaders can be deleted after pipeline creation
-            Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
-            Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
-            pid = m_Renderer.createPipeline(vertexShader, fragmentShader);
-        }
+        Airship::Pipeline pipeline = createPipeline();
 
         // Normalized device coordinates (NDC)
         // (-1,-1) lower-left corner, (1,1) upper-right
@@ -73,7 +70,7 @@ protected:
             m_MainWin.value()->pollEvents();
 
             // Draw code
-            m_Renderer.bindProgram(pid);
+            pipeline.bind();
             m_Renderer.draw(meshes);
 
             // Show the rendered buffer
