@@ -41,11 +41,50 @@ private:
     buffer_id m_BufferID;
 };
 
+// RAII vertex array wrapper
+class VertexArray {
+public:
+    using vao_id = unsigned int;
+
+    VertexArray();
+    ~VertexArray();
+
+    VertexArray(const VertexArray&) = delete;
+    VertexArray& operator=(const VertexArray&) = delete;
+
+    VertexArray(VertexArray&& other) noexcept;
+    VertexArray& operator=(VertexArray&& other) noexcept {
+        std::swap(m_VertexArrayID, other.m_VertexArrayID);
+        return *this;
+    }
+
+    void bind() const;
+    [[nodiscard]] vao_id id() const { return m_VertexArrayID; }
+
+private:
+    vao_id m_VertexArrayID;
+};
+
 template <typename VertexT>
 struct Mesh {
     using vao_id = unsigned int;
-    Mesh(const std::vector<VertexT>& vertices);
     Mesh();
+    Mesh(const std::vector<VertexT>& vertices);
+    Mesh(const Mesh& other) = delete;
+    Mesh(Mesh&& other) noexcept {
+        std::swap(m_VAO, other.m_VAO);
+        std::swap(m_VertexBuffer, other.m_VertexBuffer);
+        std::swap(m_Vertices, other.m_Vertices);
+        std::swap(m_Invalid, other.m_Invalid);
+    }
+    Mesh& operator=(const Mesh& other) = delete;
+    Mesh& operator=(Mesh&& other) noexcept {
+        std::swap(m_VAO, other.m_VAO);
+        std::swap(m_VertexBuffer, other.m_VertexBuffer);
+        std::swap(m_Vertices, other.m_Vertices);
+        std::swap(m_Invalid, other.m_Invalid);
+        return *this;
+    }
     VertexT& addVertex() {
         m_Invalid = true;
         return m_Vertices.emplace_back();
@@ -63,10 +102,7 @@ struct Mesh {
     std::vector<VertexT>& getVertices() { return m_Vertices; }
 
 private:
-    [[nodiscard]] vao_id createVertexArrayObject() const;
-    void bindVertexArrayObject() const;
-
-    vao_id m_VertexArrayObject;
+    VertexArray m_VAO;
     Buffer m_VertexBuffer;
     std::vector<VertexT> m_Vertices;
     bool m_Invalid = true;
