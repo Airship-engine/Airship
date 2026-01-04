@@ -75,7 +75,9 @@ TEST(Renderer, Init) {
         {{0.0f, -0.5f, 0.0f}},
     };
 
-    std::vector<Airship::Mesh<Airship::VertexP>> meshes{verticesA, verticesB};
+    std::vector<Airship::Mesh<Airship::VertexP>> meshes;
+    meshes.emplace_back(verticesA);
+    meshes.emplace_back(verticesB);
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {

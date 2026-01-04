@@ -50,9 +50,8 @@ void VertexPC::setAttribData() {
 }
 
 template <typename VertexT>
-Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) :
-    m_VertexArrayObject(createVertexArrayObject()), m_Vertices(vertices) {
-    bindVertexArrayObject();
+Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) : m_Vertices(vertices) {
+    m_VAO.bind();
     m_VertexBuffer.bind();
 
     VertexT::setAttribData();
@@ -67,25 +66,12 @@ void Mesh<VertexT>::draw() {
     auto numVertices = m_Vertices.size();
     assert(numVertices % 3 == 0);
     const int off = 0; // Maybe used, maybe always 0?
-    bindVertexArrayObject();
+    m_VAO.bind();
     if (m_Invalid) {
         m_VertexBuffer.update(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
         m_Invalid = false;
     }
     glDrawArrays(GL_TRIANGLES, off, numVertices);
-}
-
-template <typename VertexT>
-Mesh<VertexT>::vao_id Mesh<VertexT>::createVertexArrayObject() const {
-    // TODO: Allow batch creation of VAOs
-    vao_id vid;
-    glCreateVertexArrays(1, &vid);
-    return vid;
-}
-
-template <typename VertexT>
-void Mesh<VertexT>::bindVertexArrayObject() const {
-    glBindVertexArray(m_VertexArrayObject);
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
@@ -102,6 +88,24 @@ void Buffer::update(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
+}
+
+// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+VertexArray::VertexArray() {
+    // TODO: Allow batch creation of VAOs
+    glCreateVertexArrays(1, &m_VertexArrayID);
+}
+
+VertexArray::~VertexArray() {
+    glDeleteVertexArrays(1, &m_VertexArrayID);
+}
+
+void VertexArray::bind() const {
+    glBindVertexArray(m_VertexArrayID);
+}
+
+VertexArray::VertexArray(VertexArray&& other) noexcept : m_VertexArrayID(other.m_VertexArrayID) {
+    other.m_VertexArrayID = GL_INVALID_VALUE;
 }
 
 void Renderer::init() {
