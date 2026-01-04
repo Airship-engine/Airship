@@ -2,6 +2,7 @@
 
 #include "render/opengl/renderer.h"
 
+#include <cassert>
 #include <cstddef>
 #include <cstdlib>
 #include <string>
@@ -26,64 +27,83 @@ constexpr GLenum toGL(ShaderType stype) {
     }
     return 0;
 }
+
+namespace Vertex {
+void setVertexAttribDataFloat(int idx, int count, size_t offset) {
+    glVertexAttribFormat(idx, count, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(offset));
+
+    glEnableVertexAttribArray(idx);
+    glVertexAttribBinding(idx, 0);
+}
+} // namespace Vertex
 } // anonymous namespace
 
-void Vertex::setAttribData() {
+void VertexP::setAttribData() {
     // Needs to be expanded if vertex data changes
-    setVertexAttribDataFloat(0, 3);
-    enableVertexAttribArray(0);
+    Vertex::setVertexAttribDataFloat(0, 3, offsetof(VertexP, m_Position));
 }
 
-void Vertex::setVertexAttribDataFloat(int idx, int count) {
-    // TODO: Improve flexibility and coverage
-    auto stride = static_cast<GLsizei>(count * sizeof(float));
-    glVertexAttribPointer(idx, count, GL_FLOAT, GL_FALSE, stride, (void*) nullptr);
+void VertexPC::setAttribData() {
+    // Needs to be expanded if vertex data changes
+    Vertex::setVertexAttribDataFloat(0, 3, offsetof(VertexPC, m_Position));
+    Vertex::setVertexAttribDataFloat(1, 4, offsetof(VertexPC, m_Color));
 }
 
-void Vertex::enableVertexAttribArray(int idx) {
-    glEnableVertexAttribArray(idx);
-}
-
-Mesh::Mesh(const std::vector<Vertex>& vertices) :
-    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()),
-    m_Count(static_cast<int>(vertices.size())) {
+template <typename VertexT>
+Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) :
+    m_VertexArrayObject(createVertexArrayObject()), m_BufferArrayObject(createBuffer()), m_Vertices(vertices) {
     bindVertexArrayObject();
-
     bindBuffer();
-    copyBuffer(vertices.size() * sizeof(Vertex), vertices.data());
 
-    Vertex::setAttribData();
+    VertexT::setAttribData();
+    glBindVertexBuffer(0, m_BufferArrayObject, 0, sizeof(VertexT));
 }
 
-void Mesh::draw() const {
+template <typename VertexT>
+Mesh<VertexT>::Mesh() : Mesh(std::vector<VertexT>()) {}
+
+template <typename VertexT>
+void Mesh<VertexT>::draw() {
+    auto numVertices = m_Vertices.size();
+    assert(numVertices % 3 == 0);
     const int off = 0; // Maybe used, maybe always 0?
     bindVertexArrayObject();
-    glDrawArrays(GL_TRIANGLES, off, m_Count);
+    if (m_Invalid) {
+        bindBuffer();
+        copyBuffer(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
+        m_Invalid = false;
+    }
+    glDrawArrays(GL_TRIANGLES, off, numVertices);
 }
 
-Mesh::vao_id Mesh::createVertexArrayObject() const {
+template <typename VertexT>
+Mesh<VertexT>::vao_id Mesh<VertexT>::createVertexArrayObject() const {
     // TODO: Allow batch creation of VAOs
     vao_id vid;
     glCreateVertexArrays(1, &vid);
     return vid;
 }
 
-void Mesh::bindVertexArrayObject() const {
+template <typename VertexT>
+void Mesh<VertexT>::bindVertexArrayObject() const {
     glBindVertexArray(m_VertexArrayObject);
 }
 
-Mesh::buffer_id Mesh::createBuffer() const {
+template <typename VertexT>
+Mesh<VertexT>::buffer_id Mesh<VertexT>::createBuffer() const {
     // TODO: allow batch creation of buffers
     buffer_id ret;
     glGenBuffers(1, &ret);
     return ret;
 }
 
-void Mesh::bindBuffer() const {
+template <typename VertexT>
+void Mesh<VertexT>::bindBuffer() const {
     glBindBuffer(GL_ARRAY_BUFFER, m_BufferArrayObject);
 }
 
-void Mesh::copyBuffer(size_t bytes, const void* data) const {
+template <typename VertexT>
+void Mesh<VertexT>::copyBuffer(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
     glBufferData(GL_ARRAY_BUFFER, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
@@ -116,7 +136,7 @@ std::string Renderer::getCompileLog(shader_id sid) const {
     int len;
     glGetShaderiv(sid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
-    ret.reserve(len);
+    ret.resize(len);
     glGetShaderInfoLog(sid, len, nullptr, ret.data());
     return ret;
 }
@@ -144,7 +164,7 @@ std::string Renderer::getLinkLog(program_id pid) const {
     int len;
     glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &len);
     std::string ret;
-    ret.reserve(len);
+    ret.resize(len);
     glGetProgramInfoLog(pid, len, nullptr, ret.data());
     return ret;
 }
@@ -153,15 +173,35 @@ void Renderer::bindProgram(program_id pid) const {
     glUseProgram(pid);
 }
 
-void Renderer::draw(const std::vector<Mesh>& meshes) const {
-    glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-    glClear(GL_COLOR_BUFFER_BIT);
-    for (const auto& mesh : meshes)
+template <typename VertexT>
+void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, bool clear) const {
+    if (clear) {
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    for (auto& mesh : meshes)
         mesh.draw();
+}
+
+template <typename VertexT>
+void Renderer::draw(Mesh<VertexT>& mesh, bool clear) const {
+    if (clear) {
+        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+        glClear(GL_COLOR_BUFFER_BIT);
+    }
+    mesh.draw();
 }
 
 void Renderer::setClearColor(const RGBColor& color) {
     m_ClearColor = color;
 }
+
+// Explicit instantiations
+template struct Mesh<VertexP>;
+template struct Mesh<VertexPC>;
+template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, bool) const;
+template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, bool) const;
+template void Renderer::draw<VertexP>(Mesh<VertexP>&, bool) const;
+template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, bool) const;
 
 } // namespace Airship
