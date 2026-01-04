@@ -19,6 +19,7 @@ constexpr float HUE_ROTATION_SPEED = 8.0f; // Degrees / second
 constexpr float SPAWN_INTERVAL = 0.5f; // Seconds between triangle spawns
 constexpr float MIN_TRIANGLE_EXTENT = 0.1f; // Min distance from center to vertex
 constexpr float MAX_TRIANGLE_EXTENT = 0.4f; // Max distance from center to vertex
+constexpr float AVOIDANCE_DEGREES = 90.0f; // Hue degrees away from background for triangle spawn
 
 // clang-format off
 const char* const vertexShaderSource =
@@ -121,7 +122,7 @@ void initTriangle(Airship::VertexPC& v1, Airship::VertexPC& v2, Airship::VertexP
     v2.m_Position.x() += randX;
     v3.m_Position.x() += randX;
 
-    auto hue = bgHue + randomRange(90.0f, 270.0f);
+    auto hue = bgHue + randomRange(AVOIDANCE_DEGREES, 360.0f - AVOIDANCE_DEGREES);
     auto sat = randomRange(0.4f, 1.0f);
     auto val = randomRange(0.5f, 1.0f);
     auto color = Airship::HSVColor(hue, sat, val);
