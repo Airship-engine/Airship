@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <string>
 #include <tuple>
+#include <utility>
 #include <vector>
 
 #include "core/utils.hpp"
@@ -82,16 +83,31 @@ private:
     shader_id m_ShaderID;
 };
 
+class Pipeline {
+    using program_id = unsigned int;
+
+public:
+    Pipeline(const Shader& vShader, const Shader& fShader);
+    Pipeline(const Pipeline& other) = delete;
+    Pipeline(Pipeline&& other) noexcept { std::swap(m_ProgramID, other.m_ProgramID); }
+    Pipeline& operator=(const Pipeline& other) = delete;
+    Pipeline& operator=(Pipeline&& other) noexcept {
+        std::swap(m_ProgramID, other.m_ProgramID);
+        return *this;
+    }
+    ~Pipeline();
+    void bind() const;
+
+private:
+    [[nodiscard]] std::string getLinkLog() const;
+    program_id m_ProgramID = 0;
+};
+
 class Renderer {
 public:
     Renderer() = default;
-    using program_id = unsigned int;
     void init();
     void resize(int width, int height) const;
-
-    [[nodiscard]] program_id createPipeline(const Shader& vShader, const Shader& fShader) const;
-    [[nodiscard]] std::string getLinkLog(program_id pid) const;
-    void bindProgram(program_id pid) const;
 
     template <typename VertexT>
     void draw(std::vector<Mesh<VertexT>>& meshes, bool clear = true) const;
