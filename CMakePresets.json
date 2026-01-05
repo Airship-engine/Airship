@@ -19,7 +19,8 @@
             "hidden": true,
             "cacheVariables": {
                 "CMAKE_TOOLCHAIN_FILE": "cmake/toolchains/clang.cmake"
-            }
+            },
+            "toolset":  "ClangCL"
         },
         {
             "name": "root",
@@ -55,7 +56,7 @@
             "description": "Basic Debug Build w/optimizations",
             "inherits": "root",
             "cacheVariables": {
-                "CMAKE_BUILD_TYPE": "Debug"
+                "CMAKE_BUILD_TYPE": "RelWithDebInfo"
             }
         },
         {
