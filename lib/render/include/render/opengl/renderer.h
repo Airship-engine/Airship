@@ -41,45 +41,19 @@ private:
     buffer_id m_BufferID;
 };
 
-// RAII vertex array wrapper
-class VertexArray {
-public:
-    using vao_id = unsigned int;
-
-    VertexArray();
-    ~VertexArray();
-
-    VertexArray(const VertexArray&) = delete;
-    VertexArray& operator=(const VertexArray&) = delete;
-
-    VertexArray(VertexArray&& other) noexcept;
-    VertexArray& operator=(VertexArray&& other) noexcept {
-        std::swap(m_VertexArrayID, other.m_VertexArrayID);
-        return *this;
-    }
-
-    void bind() const;
-    [[nodiscard]] vao_id id() const { return m_VertexArrayID; }
-
-private:
-    vao_id m_VertexArrayID;
-};
-
 template <typename VertexT>
 struct Mesh {
     using vao_id = unsigned int;
-    Mesh();
-    Mesh(const std::vector<VertexT>& vertices);
+    Mesh() : Mesh(std::vector<VertexT>()) {};
+    Mesh(const std::vector<VertexT>& vertices) : m_Vertices(vertices) {};
     Mesh(const Mesh& other) = delete;
     Mesh(Mesh&& other) noexcept {
-        std::swap(m_VAO, other.m_VAO);
         std::swap(m_VertexBuffer, other.m_VertexBuffer);
         std::swap(m_Vertices, other.m_Vertices);
         std::swap(m_Invalid, other.m_Invalid);
     }
     Mesh& operator=(const Mesh& other) = delete;
     Mesh& operator=(Mesh&& other) noexcept {
-        std::swap(m_VAO, other.m_VAO);
         std::swap(m_VertexBuffer, other.m_VertexBuffer);
         std::swap(m_Vertices, other.m_Vertices);
         std::swap(m_Invalid, other.m_Invalid);
@@ -100,9 +74,9 @@ struct Mesh {
     void draw();
     void invalidate() { m_Invalid = true; }
     std::vector<VertexT>& getVertices() { return m_Vertices; }
+    [[nodiscard]] const Buffer& buffer() const { return m_VertexBuffer; }
 
 private:
-    VertexArray m_VAO;
     Buffer m_VertexBuffer;
     std::vector<VertexT> m_Vertices;
     bool m_Invalid = true;
@@ -153,9 +127,9 @@ public:
     void resize(int width, int height) const;
 
     template <typename VertexT>
-    void draw(std::vector<Mesh<VertexT>>& meshes, bool clear = true) const;
+    void draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline, bool clear = true) const;
     template <typename VertexT>
-    void draw(Mesh<VertexT>& meshes, bool clear = true) const;
+    void draw(Mesh<VertexT>& meshes, const Pipeline& pipeline, bool clear = true) const;
     void setClearColor(const RGBColor& color);
 
 private:

@@ -73,7 +73,7 @@ protected:
 
             // Draw code
             pipeline.bind();
-            m_Renderer.draw(meshes);
+            m_Renderer.draw(meshes, pipeline);
 
             // Show the rendered buffer
             m_MainWin.value()->swapBuffers();

@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "GL/gl3w.h"
@@ -15,7 +16,42 @@
 
 namespace Airship {
 
+// RAII vertex array wrapper
+class VertexArray {
+public:
+    using vao_id = unsigned int;
+
+    VertexArray();
+    ~VertexArray();
+
+    VertexArray(const VertexArray&) = delete;
+    VertexArray& operator=(const VertexArray&) = delete;
+
+    VertexArray(VertexArray&& other) noexcept;
+    VertexArray& operator=(VertexArray&& other) noexcept {
+        std::swap(m_VertexArrayID, other.m_VertexArrayID);
+        return *this;
+    }
+
+    void bind() const;
+    [[nodiscard]] vao_id id() const { return m_VertexArrayID; }
+
+private:
+    vao_id m_VertexArrayID = GL_INVALID_VALUE;
+};
+
 namespace {
+template <typename VertexType>
+VertexArray setupVertexArrayBinding(const Mesh<VertexType>& mesh, const Pipeline& pipeline) {
+    VertexArray vao;
+    (void) pipeline; // Unused for now -- will eventually be used as the source of truth for attributes
+
+    vao.bind();
+    VertexType::setAttribData();
+    glBindVertexBuffer(0, mesh.buffer().get(), 0, sizeof(VertexType));
+    return vao;
+}
+
 constexpr GLenum toGL(ShaderType stype) {
     switch (stype) {
     case ShaderType::Vertex:
@@ -50,23 +86,10 @@ void VertexPC::setAttribData() {
 }
 
 template <typename VertexT>
-Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) : m_Vertices(vertices) {
-    m_VAO.bind();
-    m_VertexBuffer.bind();
-
-    VertexT::setAttribData();
-    glBindVertexBuffer(0, m_VertexBuffer.get(), 0, sizeof(VertexT));
-}
-
-template <typename VertexT>
-Mesh<VertexT>::Mesh() : Mesh(std::vector<VertexT>()) {}
-
-template <typename VertexT>
 void Mesh<VertexT>::draw() {
     auto numVertices = m_Vertices.size();
     assert(numVertices % 3 == 0);
     const int off = 0; // Maybe used, maybe always 0?
-    m_VAO.bind();
     if (m_Invalid) {
         m_VertexBuffer.update(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
         m_Invalid = false;
@@ -90,7 +113,6 @@ void Buffer::update(size_t bytes, const void* data) const {
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
 }
 
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
     glCreateVertexArrays(1, &m_VertexArrayID);
@@ -178,21 +200,25 @@ Pipeline::~Pipeline() {
 }
 
 template <typename VertexT>
-void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, bool clear) const {
+void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline, bool clear) const {
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
     for (auto& mesh : meshes)
-        mesh.draw();
+        draw(mesh, pipeline, false);
 }
 
 template <typename VertexT>
-void Renderer::draw(Mesh<VertexT>& mesh, bool clear) const {
+void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) const {
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
+    // TODO: Cache VAO per mesh/pipeline combo
+    VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
+    pipeline.bind();
+    vao.bind();
     mesh.draw();
 }
 
@@ -203,9 +229,9 @@ void Renderer::setClearColor(const RGBColor& color) {
 // Explicit instantiations
 template struct Mesh<VertexP>;
 template struct Mesh<VertexPC>;
-template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, bool) const;
-template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, bool) const;
-template void Renderer::draw<VertexP>(Mesh<VertexP>&, bool) const;
-template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, bool) const;
+template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexP>(Mesh<VertexP>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, const Pipeline&, bool) const;
 
 } // namespace Airship
