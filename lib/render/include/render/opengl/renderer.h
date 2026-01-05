@@ -100,13 +100,29 @@ private:
     shader_id m_ShaderID;
 };
 
+enum class VertexFormat : uint8_t {
+    Float3,
+    Float4
+};
+
 class Pipeline {
     using program_id = unsigned int;
 
 public:
-    Pipeline(const Shader& vShader, const Shader& fShader);
+    // Abstraction on per-vertex shader variables, e.g.
+    // layout (location = 0) in vec3 aPos
+    struct VertexAttributeDesc {
+        std::string name;
+        uint32_t location;
+        VertexFormat format;
+    };
+
+    Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs = {});
     Pipeline(const Pipeline& other) = delete;
-    Pipeline(Pipeline&& other) noexcept { std::swap(m_ProgramID, other.m_ProgramID); }
+    Pipeline(Pipeline&& other) noexcept {
+        std::swap(m_ProgramID, other.m_ProgramID);
+        std::swap(m_VertexAttribs, other.m_VertexAttribs);
+    }
     Pipeline& operator=(const Pipeline& other) = delete;
     Pipeline& operator=(Pipeline&& other) noexcept {
         std::swap(m_ProgramID, other.m_ProgramID);
@@ -114,10 +130,12 @@ public:
     }
     ~Pipeline();
     void bind() const;
+    [[nodiscard]] const std::vector<VertexAttributeDesc>& getVertexAttributes() const { return m_VertexAttribs; }
 
 private:
     [[nodiscard]] std::string getLinkLog() const;
     program_id m_ProgramID = 0;
+    std::vector<VertexAttributeDesc> m_VertexAttribs;
 };
 
 class Renderer {

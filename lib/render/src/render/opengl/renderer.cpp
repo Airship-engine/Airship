@@ -167,7 +167,8 @@ Shader::~Shader() {
     glDeleteShader(m_ShaderID);
 }
 
-Pipeline::Pipeline(const Shader& vShader, const Shader& fShader) : m_ProgramID(glCreateProgram()) {
+Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
+    m_ProgramID(glCreateProgram()), m_VertexAttribs(attribs) {
     glAttachShader(m_ProgramID, vShader.get());
     glAttachShader(m_ProgramID, fShader.get());
     glLinkProgram(m_ProgramID);

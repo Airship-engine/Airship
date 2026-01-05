@@ -87,7 +87,12 @@ std::tuple<Airship::Pipeline, Airship::Pipeline> createPipelines() {
     Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
     Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
     Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
-    return {Airship::Pipeline(vertexShader, triangleFragmentShader), Airship::Pipeline(vertexShader, bgFragmentShader)};
+    std::vector<Airship::Pipeline::VertexAttributeDesc> attribs = {
+        {"Position", 0, Airship::VertexFormat::Float3},
+        {"Color", 1, Airship::VertexFormat::Float4},
+    };
+    return {Airship::Pipeline(vertexShader, triangleFragmentShader, attribs),
+            Airship::Pipeline(vertexShader, bgFragmentShader, attribs)};
 }
 
 float randomRange(float min, float max) {
