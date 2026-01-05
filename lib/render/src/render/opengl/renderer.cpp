@@ -50,23 +50,10 @@ void VertexPC::setAttribData() {
 }
 
 template <typename VertexT>
-Mesh<VertexT>::Mesh(const std::vector<VertexT>& vertices) : m_Vertices(vertices) {
-    m_VAO.bind();
-    m_VertexBuffer.bind();
-
-    VertexT::setAttribData();
-    glBindVertexBuffer(0, m_VertexBuffer.get(), 0, sizeof(VertexT));
-}
-
-template <typename VertexT>
-Mesh<VertexT>::Mesh() : Mesh(std::vector<VertexT>()) {}
-
-template <typename VertexT>
 void Mesh<VertexT>::draw() {
     auto numVertices = m_Vertices.size();
     assert(numVertices % 3 == 0);
     const int off = 0; // Maybe used, maybe always 0?
-    m_VAO.bind();
     if (m_Invalid) {
         m_VertexBuffer.update(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
         m_Invalid = false;
@@ -106,6 +93,44 @@ void VertexArray::bind() const {
 
 VertexArray::VertexArray(VertexArray&& other) noexcept : m_VertexArrayID(other.m_VertexArrayID) {
     other.m_VertexArrayID = GL_INVALID_VALUE;
+}
+
+class VertexInputBinding {
+public:
+    template <typename VertexType>
+    VertexInputBinding(const Mesh<VertexType>& mesh, const Pipeline& pipeline);
+    void bind() const { m_VAO.bind(); };
+
+private:
+    VertexArray m_VAO;
+};
+
+template <typename VertexType>
+VertexInputBinding::VertexInputBinding(const Mesh<VertexType>& mesh, const Pipeline& pipeline) {
+
+    (void) pipeline; // Unused for now -- will eventually be used as the source of truth for attributes
+
+    m_VAO.bind();
+    VertexType::setAttribData();
+    glBindVertexBuffer(0, mesh.buffer().get(), 0, sizeof(VertexType));
+
+    // uint32_t nextBinding = 0;
+
+    // for (const ShaderAttribute& attr : pipeline.attributes()) {
+    //     const VertexStream* stream = vertexData.get(attr.semantic);
+    //     assert(stream && "Shader requires missing vertex attribute");
+
+    //     uint32_t binding = nextBinding++;
+
+    //     glBindVertexBuffer(binding, stream->buffer->id(), stream->offset, stream->stride);
+
+    //     glEnableVertexAttribArray(attr.location);
+
+    //     auto info = getGLFormat(attr.format);
+    //     glVertexAttribFormat(attr.location, info.components, info.type, info.normalized, 0);
+
+    //     glVertexAttribBinding(attr.location, binding);
+    // }
 }
 
 void Renderer::init() {
@@ -178,21 +203,26 @@ Pipeline::~Pipeline() {
 }
 
 template <typename VertexT>
-void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, bool clear) const {
+void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline, bool clear) const {
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
     for (auto& mesh : meshes)
-        mesh.draw();
+        // mesh.draw();
+        draw(mesh, pipeline, false);
 }
 
 template <typename VertexT>
-void Renderer::draw(Mesh<VertexT>& mesh, bool clear) const {
+void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) const {
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
     }
+    // TODO: Cache VAO per mesh/pipeline combo
+    VertexInputBinding vib(mesh, pipeline);
+    pipeline.bind();
+    vib.bind();
     mesh.draw();
 }
 
@@ -203,9 +233,9 @@ void Renderer::setClearColor(const RGBColor& color) {
 // Explicit instantiations
 template struct Mesh<VertexP>;
 template struct Mesh<VertexPC>;
-template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, bool) const;
-template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, bool) const;
-template void Renderer::draw<VertexP>(Mesh<VertexP>&, bool) const;
-template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, bool) const;
+template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexP>(Mesh<VertexP>&, const Pipeline&, bool) const;
+template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, const Pipeline&, bool) const;
 
 } // namespace Airship

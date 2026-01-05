@@ -231,10 +231,10 @@ void Game::OnStart() {
 
         // Draw code
         bg_pipeline.bind();
-        m_Renderer.draw(bgMesh);
+        m_Renderer.draw(bgMesh, bg_pipeline);
 
         triangles_pipeline.bind();
-        m_Renderer.draw(triangleMesh, false);
+        m_Renderer.draw(triangleMesh, triangles_pipeline, false);
 
         // Show the rendered buffer
         m_MainWin->swapBuffers();

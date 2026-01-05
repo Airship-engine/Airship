@@ -85,7 +85,7 @@ TEST(Renderer, Init) {
 
         // Draw code
         pipeline.bind();
-        r.draw(meshes);
+        r.draw(meshes, pipeline);
 
         // Show the rendered buffer
         window->swapBuffers();
