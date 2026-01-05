@@ -43,30 +43,6 @@ private:
     buffer_id m_BufferID;
 };
 
-// RAII vertex array wrapper
-class VertexArray {
-public:
-    using vao_id = unsigned int;
-
-    VertexArray();
-    ~VertexArray();
-
-    VertexArray(const VertexArray&) = delete;
-    VertexArray& operator=(const VertexArray&) = delete;
-
-    VertexArray(VertexArray&& other) noexcept;
-    VertexArray& operator=(VertexArray&& other) noexcept {
-        std::swap(m_VertexArrayID, other.m_VertexArrayID);
-        return *this;
-    }
-
-    void bind() const;
-    [[nodiscard]] vao_id id() const { return m_VertexArrayID; }
-
-private:
-    vao_id m_VertexArrayID;
-};
-
 template <typename VertexT>
 struct Mesh {
     using vao_id = unsigned int;

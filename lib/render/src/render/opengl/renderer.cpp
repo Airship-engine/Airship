@@ -6,6 +6,7 @@
 #include <cstddef>
 #include <cstdlib>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "core/logging.h"
@@ -77,7 +78,30 @@ void Buffer::update(size_t bytes, const void* data) const {
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
 }
 
-// NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
+// RAII vertex array wrapper
+class VertexArray {
+public:
+    using vao_id = unsigned int;
+
+    VertexArray();
+    ~VertexArray();
+
+    VertexArray(const VertexArray&) = delete;
+    VertexArray& operator=(const VertexArray&) = delete;
+
+    VertexArray(VertexArray&& other) noexcept;
+    VertexArray& operator=(VertexArray&& other) noexcept {
+        std::swap(m_VertexArrayID, other.m_VertexArrayID);
+        return *this;
+    }
+
+    void bind() const;
+    [[nodiscard]] vao_id id() const { return m_VertexArrayID; }
+
+private:
+    vao_id m_VertexArrayID = GL_INVALID_VALUE;
+};
+
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
     glCreateVertexArrays(1, &m_VertexArrayID);
