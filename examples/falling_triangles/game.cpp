@@ -87,7 +87,10 @@ std::tuple<Airship::Pipeline, Airship::Pipeline> createPipelines() {
     Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
     Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
     Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
-    return {Airship::Pipeline(vertexShader, triangleFragmentShader), Airship::Pipeline(vertexShader, bgFragmentShader)};
+    return {
+        Airship::PipelineBuilder().addShader(vertexShader).addShader(triangleFragmentShader).compile(),
+        Airship::PipelineBuilder().addShader(vertexShader).addShader(bgFragmentShader).compile(),
+    };
 }
 
 float randomRange(float min, float max) {

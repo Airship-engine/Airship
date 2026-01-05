@@ -27,7 +27,7 @@ const char* const fragmentShaderSource =
 inline Airship::Pipeline createPipeline() {
     Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
-    return Airship::Pipeline(vertexShader, fragmentShader);
+    return Airship::PipelineBuilder().addShader(vertexShader).addShader(fragmentShader).compile();
 }
 class Game : public Airship::Application {
 public:

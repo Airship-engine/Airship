@@ -57,8 +57,9 @@ TEST(Renderer, Init) {
     EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    EXPECT_NO_THROW(Airship::Pipeline pipeline = Airship::Pipeline(vertexShader, fragmentShader));
-    Airship::Pipeline pipeline = Airship::Pipeline(vertexShader, fragmentShader);
+    EXPECT_NO_THROW(Airship::Pipeline pipeline =
+                        Airship::PipelineBuilder().addShader(vertexShader).addShader(fragmentShader).compile());
+    Airship::Pipeline pipeline = Airship::PipelineBuilder().addShader(vertexShader).addShader(fragmentShader).compile();
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right

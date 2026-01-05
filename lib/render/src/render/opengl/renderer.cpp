@@ -8,9 +8,9 @@
 #include <string>
 #include <vector>
 
+#include "core/logging.h"
 #include "GL/gl3w.h"
 #include "GL/glcorearb.h"
-#include "core/logging.h"
 #include "render/color.h"
 
 namespace Airship {
@@ -144,7 +144,7 @@ void Renderer::resize(int width, int height) const {
     glViewport(0, 0, width, height);
 }
 
-Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreateShader(toGL(stype))) {
+Shader::Shader(ShaderType stype, const std::string& source) : m_Type(stype), m_ShaderID(glCreateShader(toGL(stype))) {
     const char* src = source.c_str();
     glShaderSource(m_ShaderID, 1, &src, nullptr);
     glCompileShader(m_ShaderID);
@@ -170,28 +170,6 @@ Shader::~Shader() {
     glDeleteShader(m_ShaderID);
 }
 
-Pipeline::Pipeline(const Shader& vShader, const Shader& fShader) : m_ProgramID(glCreateProgram()) {
-    glAttachShader(m_ProgramID, vShader.get());
-    glAttachShader(m_ProgramID, fShader.get());
-    glLinkProgram(m_ProgramID);
-    int ok;
-    glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &ok);
-    if (ok != GL_TRUE) {
-        std::string log = getLinkLog();
-        SHIPLOG_ERROR(log);
-    }
-    assert(ok == GL_TRUE);
-}
-
-std::string Pipeline::getLinkLog() const {
-    int len;
-    glGetProgramiv(m_ProgramID, GL_INFO_LOG_LENGTH, &len);
-    std::string ret;
-    ret.resize(len);
-    glGetProgramInfoLog(m_ProgramID, len, nullptr, ret.data());
-    return ret;
-}
-
 void Pipeline::bind() const {
     assert(m_ProgramID != 0);
     glUseProgram(m_ProgramID);
@@ -200,6 +178,32 @@ void Pipeline::bind() const {
 Pipeline::~Pipeline() {
     glDeleteProgram(m_ProgramID);
     m_ProgramID = 0;
+}
+
+Pipeline PipelineBuilder::compile() {
+    program_id programId = glCreateProgram();
+    for (const auto& [_, shader] : m_Shaders) {
+        glAttachShader(programId, shader->get());
+    }
+    glLinkProgram(programId);
+    int ok;
+    glGetProgramiv(programId, GL_LINK_STATUS, &ok);
+    if (ok != GL_TRUE) {
+        assert(!"Failed to link program");
+        std::string log = getLinkLog(programId);
+        SHIPLOG_ERROR(log);
+    }
+
+    return Pipeline(programId);
+}
+
+std::string PipelineBuilder::getLinkLog(program_id programId) const {
+    int len;
+    glGetProgramiv(programId, GL_INFO_LOG_LENGTH, &len);
+    std::string ret;
+    ret.resize(len);
+    glGetProgramInfoLog(programId, len, nullptr, ret.data());
+    return ret;
 }
 
 template <typename VertexT>

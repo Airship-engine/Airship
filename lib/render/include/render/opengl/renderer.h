@@ -2,11 +2,13 @@
 
 #include <cstddef>
 #include <cstdint>
+#include <map>
 #include <string>
 #include <tuple>
 #include <utility>
 #include <vector>
 
+#include "core/logging.h"
 #include "core/utils.hpp"
 #include "render/color.h"
 
@@ -111,16 +113,30 @@ enum class ShaderType : uint8_t {
     Fragment
 };
 
+constexpr std::string_view toString(ShaderType type) {
+    switch (type) {
+    case ShaderType::Vertex:
+        return "Vertex";
+    case ShaderType::Fragment:
+        return "Fragment";
+    }
+
+    assert(!"Invalid shader type");
+    return "Unknown";
+}
+
 class Shader {
     using shader_id = unsigned int;
 
 public:
     Shader(ShaderType type, const std::string& source);
     [[nodiscard]] shader_id get() const { return m_ShaderID; }
+    [[nodiscard]] ShaderType type() const { return m_Type; }
     ~Shader();
 
 private:
     [[nodiscard]] std::string getCompileLog() const;
+    ShaderType m_Type;
     shader_id m_ShaderID;
 };
 
@@ -128,7 +144,6 @@ class Pipeline {
     using program_id = unsigned int;
 
 public:
-    Pipeline(const Shader& vShader, const Shader& fShader);
     Pipeline(const Pipeline& other) = delete;
     Pipeline(Pipeline&& other) noexcept { std::swap(m_ProgramID, other.m_ProgramID); }
     Pipeline& operator=(const Pipeline& other) = delete;
@@ -140,8 +155,29 @@ public:
     void bind() const;
 
 private:
-    [[nodiscard]] std::string getLinkLog() const;
+    Pipeline(program_id programId) : m_ProgramID(programId) {}
     program_id m_ProgramID = 0;
+
+    friend class PipelineBuilder;
+};
+
+class PipelineBuilder {
+    using program_id = unsigned int;
+
+public:
+    PipelineBuilder& addShader(const Shader& shader) {
+        if (m_Shaders.contains(shader.type())) {
+            SHIPLOG_ALERT("Pipeline builder already contains a {} shader", toString(shader.type()));
+        }
+        m_Shaders[shader.type()] = &shader;
+        return *this;
+    }
+    Pipeline compile();
+
+private:
+    [[nodiscard]] std::string getLinkLog(program_id programId) const;
+
+    std::map<ShaderType, const Shader*> m_Shaders;
 };
 
 class Renderer {
