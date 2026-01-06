@@ -33,6 +33,7 @@ struct VertexPC {
 struct Buffer {
     using buffer_id = unsigned int;
     Buffer();
+    ~Buffer();
     [[nodiscard]] buffer_id get() const { return m_BufferID; }
     void bind() const;
     void update(size_t bytes, const void* data) const;
