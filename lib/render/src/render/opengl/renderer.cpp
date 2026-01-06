@@ -40,6 +40,16 @@ private:
     vao_id m_VertexArrayID = GL_INVALID_VALUE;
 };
 
+// NOLINTNEXTLINE(cppcoreguidelines-macro-usage)
+#define CHECK_GL_ERROR()                                                                                               \
+    {                                                                                                                  \
+        GLenum err;                                                                                                    \
+        while ((err = glGetError()) != GL_NO_ERROR) {                                                                  \
+            SHIPLOG_ERROR("OpenGL error: {}", err);                                                                    \
+            std::abort();                                                                                              \
+        }                                                                                                              \
+    }
+
 namespace {
 template <typename VertexType>
 VertexArray setupVertexArrayBinding(const Mesh<VertexType>& mesh, const Pipeline& pipeline) {
@@ -95,39 +105,47 @@ void Mesh<VertexT>::draw() {
         m_Invalid = false;
     }
     glDrawArrays(GL_TRIANGLES, off, numVertices);
+    CHECK_GL_ERROR();
 }
 
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Buffer::Buffer() {
     // TODO: allow batch creation of buffers
     glCreateBuffers(1, &m_BufferID);
+    CHECK_GL_ERROR();
 }
 
 Buffer::~Buffer() {
     glDeleteBuffers(1, &m_BufferID);
+    CHECK_GL_ERROR();
 }
 
 void Buffer::bind() const {
     glBindBuffer(GL_ARRAY_BUFFER, m_BufferID);
+    CHECK_GL_ERROR();
 }
 
 void Buffer::update(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
+    CHECK_GL_ERROR();
 }
 
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
     glCreateVertexArrays(1, &m_VertexArrayID);
+    CHECK_GL_ERROR();
 }
 
 VertexArray::~VertexArray() {
     glDeleteVertexArrays(1, &m_VertexArrayID);
+    CHECK_GL_ERROR();
 }
 
 void VertexArray::bind() const {
     glBindVertexArray(m_VertexArrayID);
+    CHECK_GL_ERROR();
 }
 
 VertexArray::VertexArray(VertexArray&& other) noexcept : m_VertexArrayID(other.m_VertexArrayID) {
@@ -143,6 +161,7 @@ void Renderer::init() {
 
 void Renderer::resize(int width, int height) const {
     glViewport(0, 0, width, height);
+    CHECK_GL_ERROR();
 }
 
 Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreateShader(toGL(stype))) {
@@ -156,6 +175,7 @@ Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreat
         SHIPLOG_ERROR(log);
     }
     assert(ok == GL_TRUE);
+    CHECK_GL_ERROR();
 }
 
 std::string Shader::getCompileLog() const {
@@ -164,11 +184,13 @@ std::string Shader::getCompileLog() const {
     std::string ret;
     ret.resize(len);
     glGetShaderInfoLog(m_ShaderID, len, nullptr, ret.data());
+    CHECK_GL_ERROR();
     return ret;
 }
 
 Shader::~Shader() {
     glDeleteShader(m_ShaderID);
+    CHECK_GL_ERROR();
 }
 
 Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
@@ -183,6 +205,7 @@ Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vect
         SHIPLOG_ERROR(log);
     }
     assert(ok == GL_TRUE);
+    CHECK_GL_ERROR();
 }
 
 std::string Pipeline::getLinkLog() const {
@@ -191,16 +214,19 @@ std::string Pipeline::getLinkLog() const {
     std::string ret;
     ret.resize(len);
     glGetProgramInfoLog(m_ProgramID, len, nullptr, ret.data());
+    CHECK_GL_ERROR();
     return ret;
 }
 
 void Pipeline::bind() const {
     assert(m_ProgramID != 0);
     glUseProgram(m_ProgramID);
+    CHECK_GL_ERROR();
 }
 
 Pipeline::~Pipeline() {
     glDeleteProgram(m_ProgramID);
+    CHECK_GL_ERROR();
     m_ProgramID = 0;
 }
 
@@ -209,6 +235,7 @@ void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
+        CHECK_GL_ERROR();
     }
     for (auto& mesh : meshes)
         draw(mesh, pipeline, false);
@@ -219,6 +246,7 @@ void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) c
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
+        CHECK_GL_ERROR();
     }
     // TODO: Cache VAO per mesh/pipeline combo
     VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
