@@ -100,7 +100,7 @@ void Mesh<VertexT>::draw() {
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Buffer::Buffer() {
     // TODO: allow batch creation of buffers
-    glGenBuffers(1, &m_BufferID);
+    glCreateBuffers(1, &m_BufferID);
 }
 
 Buffer::~Buffer() {
