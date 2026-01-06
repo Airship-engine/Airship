@@ -123,6 +123,7 @@ HSVColor::HSVColor(const RGBColor& rgb) : h(0.0f), a(rgb.a) {
 
 RGBColor::RGBColor(const HSVColor& hsv) : a(hsv.a) {
     auto h = std::fmod(hsv.h, 360.0f);
+    if (h < 0) h += 360.0f;
     const float chroma = hsv.s * hsv.v;
     auto X = static_cast<float>(chroma * (1 - std::abs(std::fmod(h / 60, 2) - 1)));
     const float m = hsv.v - chroma;
