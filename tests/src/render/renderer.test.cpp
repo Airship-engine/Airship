@@ -8,6 +8,7 @@
 #include "gtest/gtest.h"
 #include "render/color.h"
 #include "test/common.h"
+#include "utils.hpp"
 
 TEST(Renderer, Init) {
     // Use Application code to handle getting a window
@@ -63,22 +64,35 @@ TEST(Renderer, Init) {
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
-    using VertexData = std::vector<Airship::VertexP>;
+    using VertexType = Airship::Utils::Point<float, 3>;
+    using VertexData = std::vector<VertexType>;
     const VertexData verticesA = {
-        {{-0.5f, -0.5f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}},
-        {{0.0f, 0.5f, 0.0f}},
+        {-0.5f, -0.5f, 0.0f},
+        {0.5f, -0.5f, 0.0f},
+        {0.0f, 0.5f, 0.0f},
     };
+    Airship::Buffer verticesABuffer;
+    verticesABuffer.update(verticesA.size() * sizeof(VertexType), verticesA.data());
 
     const VertexData verticesB = {
-        {{-0.5f, 0.5f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}},
-        {{0.0f, -0.5f, 0.0f}},
+        {-0.5f, 0.5f, 0.0f},
+        {0.5f, 0.5f, 0.0f},
+        {0.0f, -0.5f, 0.0f},
     };
+    Airship::Buffer verticesBBuffer;
+    verticesBBuffer.update(verticesB.size() * sizeof(VertexType), verticesB.data());
 
-    std::vector<Airship::Mesh<Airship::VertexP>> meshes;
-    meshes.emplace_back(verticesA);
-    meshes.emplace_back(verticesB);
+    std::vector<Airship::Mesh> meshes(2);
+    meshes[0].setAttributeStream("Position", {.buffer = &verticesABuffer,
+                                              .stride = sizeof(VertexType),
+                                              .offset = 0,
+                                              .format = Airship::VertexFormat::Float3});
+    meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
+    meshes[1].setAttributeStream("Position", {.buffer = &verticesBBuffer,
+                                              .stride = sizeof(VertexType),
+                                              .offset = 0,
+                                              .format = Airship::VertexFormat::Float3});
+    meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {

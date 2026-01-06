@@ -5,6 +5,7 @@
 #include "core/application.h"
 #include "core/window.h"
 #include "render/opengl/renderer.h"
+#include "utils.hpp"
 
 // clang-format off
 const char* const vertexShaderSource =
@@ -50,22 +51,35 @@ protected:
 
         // Normalized device coordinates (NDC)
         // (-1,-1) lower-left corner, (1,1) upper-right
-        using VertexData = std::vector<Airship::VertexP>;
+        using VertexType = Airship::Utils::Point<float, 3>;
+        using VertexData = std::vector<VertexType>;
         VertexData verticesA = {
-            {{-0.5f, -0.5f, 0.0f}},
-            {{0.5f, -0.5f, 0.0f}},
-            {{0.0f, 0.5f, 0.0f}},
+            {-0.5f, -0.5f, 0.0f},
+            {0.5f, -0.5f, 0.0f},
+            {0.0f, 0.5f, 0.0f},
         };
+        Airship::Buffer verticesABuffer;
+        verticesABuffer.update(verticesA.size() * sizeof(VertexType), verticesA.data());
 
         VertexData verticesB = {
-            {{-0.5f, 0.5f, 0.0f}},
-            {{0.5f, 0.5f, 0.0f}},
-            {{0.0f, -0.5f, 0.0f}},
+            {-0.5f, 0.5f, 0.0f},
+            {0.5f, 0.5f, 0.0f},
+            {0.0f, -0.5f, 0.0f},
         };
+        Airship::Buffer verticesBBuffer;
+        verticesBBuffer.update(verticesB.size() * sizeof(VertexType), verticesB.data());
 
-        std::vector<Airship::Mesh<Airship::VertexP>> meshes;
-        meshes.emplace_back(verticesA);
-        meshes.emplace_back(verticesB);
+        std::vector<Airship::Mesh> meshes(2);
+        meshes[0].setAttributeStream("Position", {.buffer = &verticesABuffer,
+                                                  .stride = sizeof(VertexType),
+                                                  .offset = 0,
+                                                  .format = Airship::VertexFormat::Float3});
+        meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
+        meshes[1].setAttributeStream("Position", {.buffer = &verticesBBuffer,
+                                                  .stride = sizeof(VertexType),
+                                                  .offset = 0,
+                                                  .format = Airship::VertexFormat::Float3});
+        meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
         // TODO: Pull into application?
         while (!m_MainWin.value()->shouldClose()) {

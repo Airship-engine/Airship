@@ -4,6 +4,7 @@
 
 #include <cassert>
 #include <cstddef>
+#include <cstdint>
 #include <cstdlib>
 #include <string>
 #include <utility>
@@ -50,15 +51,64 @@ private:
         }                                                                                                              \
     }
 
-namespace {
-template <typename VertexType>
-VertexArray setupVertexArrayBinding(const Mesh<VertexType>& mesh, const Pipeline& pipeline) {
-    VertexArray vao;
-    (void) pipeline; // Unused for now -- will eventually be used as the source of truth for attributes
+struct VertexFormatInfo {
+    int components;
+    GLenum type;
+    GLboolean normalized;
+};
 
-    vao.bind();
-    VertexType::setAttribData();
-    glBindVertexBuffer(0, mesh.buffer().get(), 0, sizeof(VertexType));
+namespace {
+
+VertexFormatInfo getVertexFormatInfo(VertexFormat format) {
+    switch (format) {
+    case VertexFormat::Float:
+        return {.components = 1, .type = GL_FLOAT, .normalized = GL_FALSE};
+    case VertexFormat::Float3:
+        return {.components = 3, .type = GL_FLOAT, .normalized = GL_FALSE};
+    case VertexFormat::Float4:
+        return {.components = 4, .type = GL_FLOAT, .normalized = GL_FALSE};
+    }
+    SHIPLOG_ERROR("Unable to get vertex format info");
+    return {};
+}
+
+VertexArray setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) {
+    VertexArray vao;
+    uint32_t nextBinding = 0;
+    SHIPLOG_DEBUG("Setting up vertex input bindings - {} pipeline attributes", pipeline.getVertexAttributes().size());
+
+    for (const auto& attr : pipeline.getVertexAttributes()) {
+        const VertexAttributeStream* stream = mesh.getStream(attr.name);
+        assert(stream && "Shader requires missing vertex attribute");
+
+        uint32_t binding = nextBinding++;
+        SHIPLOG_DEBUG("Binding attribute '{}' to binding {}", attr.name, binding);
+        SHIPLOG_DEBUG(" - buffer ID: {}", stream->buffer->get());
+        SHIPLOG_DEBUG(" - stride: {}", stream->stride);
+        SHIPLOG_DEBUG(" - offset: {}", stream->offset);
+
+        glVertexArrayVertexBuffer(vao.id(), binding, stream->buffer->get(), stream->offset,
+                                  static_cast<GLsizei>(stream->stride));
+        CHECK_GL_ERROR();
+
+        glEnableVertexArrayAttrib(vao.id(), attr.location);
+        CHECK_GL_ERROR();
+
+        auto info = getVertexFormatInfo(attr.format);
+        SHIPLOG_DEBUG(" - location: {}", attr.location);
+        SHIPLOG_DEBUG(" - components: {}", info.components);
+        SHIPLOG_DEBUG(" - type: {}", info.type);
+        SHIPLOG_DEBUG(" - normalized: {}", info.normalized);
+        glVertexArrayAttribFormat(vao.id(), attr.location, info.components, info.type, info.normalized, 0);
+        CHECK_GL_ERROR();
+
+        glVertexArrayAttribBinding(vao.id(), attr.location, binding);
+        CHECK_GL_ERROR();
+        GLint size = 0;
+        glGetNamedBufferParameteriv(stream->buffer->get(), GL_BUFFER_SIZE, &size);
+        CHECK_GL_ERROR();
+        SHIPLOG_DEBUG("Buffer {} has size: {}", stream->buffer->get(), size);
+    }
     return vao;
 }
 
@@ -73,38 +123,11 @@ constexpr GLenum toGL(ShaderType stype) {
     }
     return 0;
 }
-
-namespace Vertex {
-void setVertexAttribDataFloat(int idx, int count, size_t offset) {
-    glVertexAttribFormat(idx, count, GL_FLOAT, GL_FALSE, static_cast<GLsizei>(offset));
-
-    glEnableVertexAttribArray(idx);
-    glVertexAttribBinding(idx, 0);
-}
-} // namespace Vertex
 } // anonymous namespace
 
-void VertexP::setAttribData() {
-    // Needs to be expanded if vertex data changes
-    Vertex::setVertexAttribDataFloat(0, 3, offsetof(VertexP, m_Position));
-}
-
-void VertexPC::setAttribData() {
-    // Needs to be expanded if vertex data changes
-    Vertex::setVertexAttribDataFloat(0, 3, offsetof(VertexPC, m_Position));
-    Vertex::setVertexAttribDataFloat(1, 4, offsetof(VertexPC, m_Color));
-}
-
-template <typename VertexT>
-void Mesh<VertexT>::draw() {
-    auto numVertices = m_Vertices.size();
-    assert(numVertices % 3 == 0);
-    const int off = 0; // Maybe used, maybe always 0?
-    if (m_Invalid) {
-        m_VertexBuffer.update(m_Vertices.size() * sizeof(VertexT), m_Vertices.data());
-        m_Invalid = false;
-    }
-    glDrawArrays(GL_TRIANGLES, off, numVertices);
+void Mesh::draw() const {
+    assert(m_VertexCount % 3 == 0);
+    glDrawArrays(GL_TRIANGLES, 0, m_VertexCount);
     CHECK_GL_ERROR();
 }
 
@@ -247,8 +270,7 @@ Pipeline::~Pipeline() {
     m_ProgramID = 0;
 }
 
-template <typename VertexT>
-void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline, bool clear) const {
+void Renderer::draw(std::vector<Mesh>& meshes, const Pipeline& pipeline, bool clear) const {
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -258,8 +280,7 @@ void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline
         draw(mesh, pipeline, false);
 }
 
-template <typename VertexT>
-void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) const {
+void Renderer::draw(Mesh& mesh, const Pipeline& pipeline, bool clear) const {
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
@@ -276,13 +297,5 @@ void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) c
 void Renderer::setClearColor(const RGBColor& color) {
     m_ClearColor = color;
 }
-
-// Explicit instantiations
-template struct Mesh<VertexP>;
-template struct Mesh<VertexPC>;
-template void Renderer::draw<VertexP>(std::vector<Mesh<VertexP>>&, const Pipeline&, bool) const;
-template void Renderer::draw<VertexPC>(std::vector<Mesh<VertexPC>>&, const Pipeline&, bool) const;
-template void Renderer::draw<VertexP>(Mesh<VertexP>&, const Pipeline&, bool) const;
-template void Renderer::draw<VertexPC>(Mesh<VertexPC>&, const Pipeline&, bool) const;
 
 } // namespace Airship
