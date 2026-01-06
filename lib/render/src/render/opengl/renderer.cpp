@@ -111,16 +111,19 @@ void Mesh<VertexT>::draw() {
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Buffer::Buffer() {
     // TODO: allow batch creation of buffers
+    SHIPLOG_TRACE("Creating buffer with ID {}", m_BufferID);
     glCreateBuffers(1, &m_BufferID);
     CHECK_GL_ERROR();
 }
 
 Buffer::~Buffer() {
+    SHIPLOG_TRACE("Deleting buffer with ID {}", m_BufferID);
     glDeleteBuffers(1, &m_BufferID);
     CHECK_GL_ERROR();
 }
 
 void Buffer::bind() const {
+    SHIPLOG_TRACE("Binding buffer with ID {}", m_BufferID);
     glBindBuffer(GL_ARRAY_BUFFER, m_BufferID);
     CHECK_GL_ERROR();
 }
@@ -128,17 +131,23 @@ void Buffer::bind() const {
 void Buffer::update(size_t bytes, const void* data) const {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
+    SHIPLOG_TRACE("Updating buffer {} with {} bytes of data", m_BufferID, bytes);
+    if (!glIsBuffer(m_BufferID)) {
+        SHIPLOG_ERROR("Attempting to update invalid buffer {}", m_BufferID);
+    };
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
     CHECK_GL_ERROR();
 }
 
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
+    SHIPLOG_TRACE("Creating vertex array with ID {}", m_VertexArrayID);
     glCreateVertexArrays(1, &m_VertexArrayID);
     CHECK_GL_ERROR();
 }
 
 VertexArray::~VertexArray() {
+    SHIPLOG_TRACE("Deleting vertex array with ID {}", m_VertexArrayID);
     glDeleteVertexArrays(1, &m_VertexArrayID);
     CHECK_GL_ERROR();
 }
@@ -160,6 +169,7 @@ void Renderer::init() {
 }
 
 void Renderer::resize(int width, int height) const {
+    SHIPLOG_TRACE("Window resized to {}x{}", width, height);
     glViewport(0, 0, width, height);
     CHECK_GL_ERROR();
 }
@@ -189,12 +199,18 @@ std::string Shader::getCompileLog() const {
 }
 
 Shader::~Shader() {
+    SHIPLOG_TRACE("Deleting shader with ID {}", m_ShaderID);
     glDeleteShader(m_ShaderID);
     CHECK_GL_ERROR();
 }
 
 Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
     m_ProgramID(glCreateProgram()), m_VertexAttribs(attribs) {
+    SHIPLOG_TRACE("Linking pipeline {}", m_ProgramID);
+    for (const auto& attr : attribs) {
+        (void) attr; // Possibly unused after stripping
+        SHIPLOG_TRACE(" - attribute '{}' at location {}", attr.name, attr.location);
+    }
     glAttachShader(m_ProgramID, vShader.get());
     glAttachShader(m_ProgramID, fShader.get());
     glLinkProgram(m_ProgramID);
@@ -225,6 +241,7 @@ void Pipeline::bind() const {
 }
 
 Pipeline::~Pipeline() {
+    SHIPLOG_TRACE("Deleting pipeline {}", m_ProgramID);
     glDeleteProgram(m_ProgramID);
     CHECK_GL_ERROR();
     m_ProgramID = 0;
@@ -243,6 +260,7 @@ void Renderer::draw(std::vector<Mesh<VertexT>>& meshes, const Pipeline& pipeline
 
 template <typename VertexT>
 void Renderer::draw(Mesh<VertexT>& mesh, const Pipeline& pipeline, bool clear) const {
+    SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
     if (clear) {
         glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
         glClear(GL_COLOR_BUFFER_BIT);
