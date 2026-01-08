@@ -5,22 +5,18 @@
 #include <optional>
 #include <string>
 
-#include "GLFW/glfw3.h"
 #include "core/window.h"
 
 namespace Airship {
 
 void Application::Run() {
-    glfwInit();
-    GLFW_CHECK();
+    Window::Init();
     OnStart();
 }
 
 Application::~Application() {
     m_Windows.clear();
-
-    glfwTerminate();
-    GLFW_CHECK();
+    Window::Terminate();
 }
 
 std::optional<Window*> Application::CreateWindow(int w, int h, const std::string& title, bool visible) {
