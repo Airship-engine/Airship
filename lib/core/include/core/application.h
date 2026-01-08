@@ -4,6 +4,7 @@
 #include <string>
 
 #include "core/window.h"
+#include "input.h"
 #include "render/opengl/renderer.h"
 
 namespace Airship {
@@ -16,8 +17,12 @@ public:
     virtual ~Application();
 
 protected:
+    // User-facing hooks
     virtual void OnStart() {}
     virtual void OnGameLoop(float /*dt*/) {}
+    // For keystroke handling, not text
+    virtual void OnKeyPress(const Window& /*window*/, Input::Key /*key*/, int /*scancode*/, Input::KeyAction /*action*/,
+                            Input::KeyMods /*mods*/) {}
 
     bool m_ShouldClose = false;
     std::unique_ptr<Renderer> m_Renderer;
