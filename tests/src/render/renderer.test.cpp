@@ -16,12 +16,7 @@ TEST(Renderer, Init) {
     app.Run();
 
     // We have a window, and it'll only be destroyed when app goes out of scope
-    Airship::Window* window = nullptr;
-    if (auto windowVar = app.GetWindow(); windowVar.has_value()) {
-        window = windowVar.value();
-    } else {
-        FAIL() << "Failed to create window for rendering tests.";
-    }
+    Airship::Window* window = app.GetWindow();
     EXPECT_TRUE(window != nullptr);
     EXPECT_TRUE(window->Get() != nullptr);
 

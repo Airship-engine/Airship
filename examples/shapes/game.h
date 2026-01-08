@@ -37,8 +37,6 @@ public:
 
 protected:
     void OnStart() override {
-        m_MainWin = CreateWindow(m_Width, m_Height, "Shapes Example");
-
         m_Renderer.init();
         m_Renderer.resize(m_Width, m_Height);
         m_MainWin.value()->setWindowResizeCallback([this](int width, int height) {
