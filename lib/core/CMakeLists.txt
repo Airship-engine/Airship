@@ -5,6 +5,7 @@ enable_clang_tidy(AirshipCore)
 set(AirshipCoreSources
     src/core/application.cpp
     src/core/event.cpp
+    src/core/window.cpp
 )
 
 set(AirshipCoreHeaders
