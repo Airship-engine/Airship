@@ -5,11 +5,14 @@ TEST(Window, nonnull) {
     Airship::Test::GameClass app;
     app.Run();
 
-    EXPECT_EQ(app.GetWindow().has_value(), true);
+    EXPECT_NE(app.GetWindow(), nullptr);
 }
 TEST(Window, null) {
     Airship::Test::GameClass app(-1, -1);
-    app.Run();
+    EXPECT_DEATH(app.Run(), "Assertion `width >= 0' failed");
 
-    EXPECT_EQ(app.GetWindow().has_value(), false);
+    Airship::Test::GameClass app2(true);
+    app2.Run();
+
+    EXPECT_EQ(app2.GetWindow(), nullptr);
 }

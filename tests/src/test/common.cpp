@@ -11,9 +11,5 @@ namespace Airship::Test {
 const ::testing::Environment* airship_environment = ::testing::AddGlobalTestEnvironment(new AirshipTestEnvironment);
 #endif
 
-void Airship::Test::GameClass::OnStart() {
-    win = CreateWindow(width, height, "test app");
-}
-
 } // namespace Airship::Test
 
