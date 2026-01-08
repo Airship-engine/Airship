@@ -2,13 +2,12 @@
 
 #include <algorithm>
 #include <cassert>
-#include <chrono>
 #include <cmath>
 #include <cstddef>
+#include <memory>
 #include <numbers>
 #include <random>
 #include <string>
-#include <tuple>
 #include <vector>
 
 #include "color.h"
@@ -95,24 +94,24 @@ const char* const bgFragmentShaderSource =
     "}\0";
 // clang-format on
 
-namespace {
-std::tuple<Airship::Pipeline, Airship::Pipeline> createPipelines() {
+void Game::CreatePipelines() {
     Airship::Shader triangleVertexShader(Airship::ShaderType::Vertex, triangleVertexShaderSource);
     Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
     Airship::Shader bgVertexShader(Airship::ShaderType::Vertex, bgVertexShaderSource);
     Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
-    return {Airship::Pipeline(triangleVertexShader, triangleFragmentShader,
-                              {
-                                  {"Position", 0, Airship::VertexFormat::Float3},
-                                  {"Color", 1, Airship::VertexFormat::Float4},
-                              }),
-            Airship::Pipeline(bgVertexShader, bgFragmentShader,
-                              {
-                                  {"Position", 0, Airship::VertexFormat::Float3},
-                                  {"Hue", 1, Airship::VertexFormat::Float},
-                              })};
+    m_TriPipeline = std::make_unique<Airship::Pipeline>(triangleVertexShader, triangleFragmentShader,
+                                                        std::vector<Airship::Pipeline::VertexAttributeDesc>{
+                                                            {"Position", 0, Airship::VertexFormat::Float3},
+                                                            {"Color", 1, Airship::VertexFormat::Float4},
+                                                        });
+    m_BGPipeline = std::make_unique<Airship::Pipeline>(bgVertexShader, bgFragmentShader,
+                                                       std::vector<Airship::Pipeline::VertexAttributeDesc>{
+                                                           {"Position", 0, Airship::VertexFormat::Float3},
+                                                           {"Hue", 1, Airship::VertexFormat::Float},
+                                                       });
 }
 
+namespace {
 float randomRange(float min, float max) {
     static std::random_device rd;
     static std::mt19937 gen(rd());
@@ -120,12 +119,6 @@ float randomRange(float min, float max) {
     auto ret = dis(gen);
     return ret;
 }
-
-using vec3 = Airship::Utils::Point<float, 3>;
-struct TriangleVertexData {
-    vec3 position;
-    Airship::Color color;
-};
 
 void initTriangle(TriangleVertexData& v1, TriangleVertexData& v2, TriangleVertexData& v3, float bgHue) {
     constexpr float pi = std::numbers::pi_v<float>;
@@ -169,110 +162,89 @@ void initTriangle(TriangleVertexData& v1, TriangleVertexData& v2, TriangleVertex
 } // namespace
 
 void Game::OnStart() {
-    m_Renderer.init();
-    m_Renderer.resize(m_Width, m_Height);
-    m_MainWindow->setWindowResizeCallback([this](int width, int height) {
-        m_Renderer.resize(width, height);
-        m_Height = height;
-        m_Width = width;
-    });
+    CreatePipelines();
+    m_TriBuffer = std::make_unique<Airship::Buffer>();
+    m_BGHuesBuffer = std::make_unique<Airship::Buffer>();
+    m_BGBuffer = std::make_unique<Airship::Buffer>();
 
-    auto [triangles_pipeline, bg_pipeline] = createPipelines();
-
-    // Normalized device coordinates (NDC)
-    // (-1,-1) lower-left corner, (1,1) upper-right
-    auto bgHue = 0.0f; // At the top of the screen, where triangles are getting spawned
     // bg moves down at DOWN_VEL screen space/sec
     // This takes t = 2 / DOWN_VEL seconds
     // During this time, the hue rotates by HUE_ROTATION_SPEED * t degrees
     auto bottomBgHue = HUE_ROTATION_SPEED * 2 / DOWN_VEL;
-    std::vector<vec3> bgPositions = {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},  {-1.0f, -1.0f, 0.0f},
-                                     {1.0f, 1.0f, 0.0f},  {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}};
-    std::vector<float> bgHues = {bgHue, bgHue, bottomBgHue, bgHue, bottomBgHue, bottomBgHue};
-    // Will be updated at draw time
-    std::vector<TriangleVertexData> triangleVertices{};
+    m_BGPositions = {{-1.0f, 1.0f, 0.0f}, {1.0f, 1.0f, 0.0f},  {-1.0f, -1.0f, 0.0f},
+                     {1.0f, 1.0f, 0.0f},  {1.0f, -1.0f, 0.0f}, {-1.0f, -1.0f, 0.0f}};
+    m_BGHues = {m_BGHue, m_BGHue, bottomBgHue, m_BGHue, bottomBgHue, bottomBgHue};
 
-    Airship::Buffer triangleBuffer, bgPositionsBuffer, bgHuesBuffer;
-    bgPositionsBuffer.update(bgPositions.size() * sizeof(vec3), bgPositions.data());
-    bgHuesBuffer.update(bgHues.size() * sizeof(float), bgHues.data());
+    m_BGBuffer->update(m_BGPositions.size() * sizeof(vec3), m_BGPositions.data());
+    m_BGHuesBuffer->update(m_BGHues.size() * sizeof(float), m_BGHues.data());
 
-    Airship::Mesh bgMesh, triangleMesh;
-    bgMesh.setAttributeStream(
+    m_BGMesh.setAttributeStream(
         "Position",
-        {.buffer = &bgPositionsBuffer, .stride = sizeof(vec3), .offset = 0, .format = Airship::VertexFormat::Float3});
-    bgMesh.setAttributeStream(
-        "Hue", {.buffer = &bgHuesBuffer, .stride = sizeof(float), .offset = 0, .format = Airship::VertexFormat::Float});
-    bgMesh.setVertexCount(6);
-    triangleMesh.setAttributeStream("Position", {.buffer = &triangleBuffer,
-                                                 .stride = sizeof(TriangleVertexData),
-                                                 .offset = offsetof(TriangleVertexData, position),
-                                                 .format = Airship::VertexFormat::Float3});
-    triangleMesh.setAttributeStream("Color", {.buffer = &triangleBuffer,
+        {.buffer = m_BGBuffer.get(), .stride = sizeof(vec3), .offset = 0, .format = Airship::VertexFormat::Float3});
+    m_BGMesh.setAttributeStream(
+        "Hue",
+        {.buffer = m_BGHuesBuffer.get(), .stride = sizeof(float), .offset = 0, .format = Airship::VertexFormat::Float});
+    m_BGMesh.setVertexCount(6);
+    m_TriMesh.setAttributeStream("Position", {.buffer = m_TriBuffer.get(),
                                               .stride = sizeof(TriangleVertexData),
-                                              .offset = offsetof(TriangleVertexData, color),
-                                              .format = Airship::VertexFormat::Float4});
+                                              .offset = offsetof(TriangleVertexData, position),
+                                              .format = Airship::VertexFormat::Float3});
+    m_TriMesh.setAttributeStream("Color", {.buffer = m_TriBuffer.get(),
+                                           .stride = sizeof(TriangleVertexData),
+                                           .offset = offsetof(TriangleVertexData, color),
+                                           .format = Airship::VertexFormat::Float4});
+}
 
+void Game::OnGameLoop(float elapsed) {
     constexpr int maxTriangles = 20;
-    int lowestTriangleIndex = 0;
-    auto startTime = std::chrono::system_clock::now();
-    float timeSinceSpawn = 0;
-    while (!m_MainWindow->shouldClose()) {
-        auto frameTime = std::chrono::system_clock::now() - startTime;
-        startTime = std::chrono::system_clock::now();
-        auto elapsed = std::chrono::duration<float>(frameTime).count();
-        elapsed = std::min(elapsed, 0.1f); // Clamp to avoid large jumps
+    elapsed = std::min(elapsed, 0.1f); // Clamp to avoid large jumps
 
-        timeSinceSpawn += elapsed;
-        if (timeSinceSpawn >= SPAWN_INTERVAL) {
-            TriangleVertexData *v1, *v2, *v3;
-            bool skipSpawn = false;
-            if (triangleMesh.vertexCount() < maxTriangles * 3) {
-                triangleVertices.emplace_back();
-                triangleVertices.emplace_back();
-                triangleVertices.emplace_back();
-                triangleMesh.setVertexCount(static_cast<int>(triangleVertices.size()));
-                v1 = &triangleVertices[triangleVertices.size() - 3];
-                v2 = &triangleVertices[triangleVertices.size() - 2];
-                v3 = &triangleVertices[triangleVertices.size() - 1];
+    m_TimeSinceSpawn += elapsed;
+    if (m_TimeSinceSpawn >= SPAWN_INTERVAL) {
+        TriangleVertexData *v1, *v2, *v3;
+        bool skipSpawn = false;
+        if (m_TriMesh.vertexCount() < maxTriangles * 3) {
+            m_TriVerts.emplace_back();
+            m_TriVerts.emplace_back();
+            m_TriVerts.emplace_back();
+            m_TriMesh.setVertexCount(static_cast<int>(m_TriVerts.size()));
+            v1 = &m_TriVerts[m_TriVerts.size() - 3];
+            v2 = &m_TriVerts[m_TriVerts.size() - 2];
+            v3 = &m_TriVerts[m_TriVerts.size() - 1];
+        } else {
+            v1 = &m_TriVerts[(m_LowestTriangleIndex * 3) + 0];
+            v2 = &m_TriVerts[(m_LowestTriangleIndex * 3) + 1];
+            v3 = &m_TriVerts[(m_LowestTriangleIndex * 3) + 2];
+
+            // Skip spawn if this triangle is still visible
+            if (v1->position.y() > -1.0f || v2->position.y() > -1.0f || v3->position.y() > -1.0f) {
+                skipSpawn = true;
             } else {
-                v1 = &triangleVertices[(lowestTriangleIndex * 3) + 0];
-                v2 = &triangleVertices[(lowestTriangleIndex * 3) + 1];
-                v3 = &triangleVertices[(lowestTriangleIndex * 3) + 2];
-
-                // Skip spawn if this triangle is still visible
-                if (v1->position.y() > -1.0f || v2->position.y() > -1.0f || v3->position.y() > -1.0f) {
-                    skipSpawn = true;
-                } else {
-                    lowestTriangleIndex = (lowestTriangleIndex + 1) % maxTriangles;
-                }
-            }
-            if (!skipSpawn) {
-                initTriangle(*v1, *v2, *v3, bgHue);
-                timeSinceSpawn = 0;
+                m_LowestTriangleIndex = (m_LowestTriangleIndex + 1) % maxTriangles;
             }
         }
-        for (auto& vertex : triangleVertices) {
-            vertex.position.y() -= DOWN_VEL * elapsed;
-            vertex.color.a -= 0.1f * elapsed;
+        if (!skipSpawn) {
+            initTriangle(*v1, *v2, *v3, m_BGHue);
+            m_TimeSinceSpawn = 0;
         }
-        triangleBuffer.update(triangleVertices.size() * sizeof(TriangleVertexData), triangleVertices.data());
-        // Simulate moving down at DOWN_VEL speed
-
-        bgHue -= HUE_ROTATION_SPEED * elapsed;
-        for (auto& hue : bgHues) {
-            hue -= HUE_ROTATION_SPEED * elapsed;
-        }
-        bgHuesBuffer.update(bgHues.size() * sizeof(float), bgHues.data());
-        m_MainWindow->pollEvents();
-
-        // Draw code
-        bg_pipeline.bind();
-        m_Renderer.draw(bgMesh, bg_pipeline);
-
-        triangles_pipeline.bind();
-        m_Renderer.draw(triangleMesh, triangles_pipeline, false);
-
-        // Show the rendered buffer
-        m_MainWindow->swapBuffers();
     }
+    for (auto& vertex : m_TriVerts) {
+        vertex.position.y() -= DOWN_VEL * elapsed;
+        vertex.color.a -= 0.1f * elapsed;
+    }
+    m_TriBuffer->update(m_TriVerts.size() * sizeof(TriangleVertexData), m_TriVerts.data());
+    // Simulate moving down at DOWN_VEL speed
+
+    m_BGHue -= HUE_ROTATION_SPEED * elapsed;
+    for (auto& hue : m_BGHues) {
+        hue -= HUE_ROTATION_SPEED * elapsed;
+    }
+    m_BGHuesBuffer->update(m_BGHues.size() * sizeof(float), m_BGHues.data());
+
+    // Draw code
+    m_BGPipeline->bind();
+    m_Renderer->draw(m_BGMesh, *m_BGPipeline);
+
+    m_TriPipeline->bind();
+    m_Renderer->draw(m_TriMesh, *m_TriPipeline, false);
 }

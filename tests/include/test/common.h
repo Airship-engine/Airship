@@ -1,9 +1,11 @@
 #include <string_view>
 
+#include "color.h"
 #include "core/application.h"
 #include "core/logging.h"
 #include "core/window.h"
 #include "gtest/gtest.h"
+#include "opengl/renderer.h"
 
 namespace Airship::Test {
 
@@ -30,9 +32,19 @@ extern const ::testing::Environment* airship_environment;
 
 class GameClass : public Airship::Application {
 public:
+    GameClass(bool servermode) : Airship::Application(servermode) {}
     GameClass(int width, int height) : Airship::Application(width, height, "test app") {};
     GameClass() : GameClass(600, 800) {}
     [[nodiscard]] Airship::Window* GetWindow() const { return m_MainWindow.get(); }
+    [[nodiscard]] Airship::Renderer* GetRenderer() const { return m_Renderer.get(); }
+
+protected:
+    void OnStart() override {
+        if (m_Renderer) m_Renderer->setClearColor(Airship::Colors::CornflowerBlue);
+    }
+    void OnGameLoop(float /*elapsed*/) override {
+        m_ShouldClose = true; // Skip the game loop
+    }
 };
 
 } // namespace Airship::Test
