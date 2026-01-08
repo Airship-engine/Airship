@@ -3,10 +3,33 @@
 #include <vector>
 
 #include "core/application.h"
-#include "core/logging.h"
 #include "core/window.h"
 #include "render/opengl/renderer.h"
+#include "utils.hpp"
 
+// clang-format off
+const char* const vertexShaderSource =
+    "#version 330 core\n"
+    "layout (location = 0) in vec3 aPos;\n"
+    "void main()\n"
+    "{\n"
+    "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+    "}\0";
+
+const char* const fragmentShaderSource =
+    "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+// clang-format on
+
+inline Airship::Pipeline createPipeline() {
+    Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
+    Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
+    return Airship::Pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}});
+}
 class Game : public Airship::Application {
 public:
     Game() = default;
@@ -24,76 +47,47 @@ protected:
             m_Width = width;
         });
 
-        // clang-format off
-        const char* vertexShaderSource =
-            "#version 330 core\n"
-            "layout (location = 0) in vec3 aPos;\n"
-            "void main()\n"
-            "{\n"
-            "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
-            "}\0";
-        // clang-format on
-
-        Airship::Renderer::shader_id vs_id = m_Renderer.createShader(Airship::ShaderType::Vertex);
-        bool ok = m_Renderer.compileShader(vs_id, vertexShaderSource);
-        if (!ok) {
-            std::string log = m_Renderer.getCompileLog(vs_id);
-            SHIPLOG_ERROR(log);
-        }
-
-        // clang-format off
-        const char* fragmentShaderSource =
-            "#version 330 core\n"
-            "out vec4 FragColor;\n"
-            "void main()\n"
-            "{\n"
-            "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
-            "}\0";
-        // clang-format on
-
-        Airship::Renderer::shader_id fs_id = m_Renderer.createShader(Airship::ShaderType::Fragment);
-        ok = m_Renderer.compileShader(fs_id, fragmentShaderSource);
-        if (!ok) {
-            std::string log = m_Renderer.getCompileLog(fs_id);
-            SHIPLOG_ERROR(log);
-            return;
-        }
-
-        Airship::Renderer::program_id pid = m_Renderer.createProgram();
-        m_Renderer.attachShader(pid, vs_id);
-        m_Renderer.attachShader(pid, fs_id);
-        ok = m_Renderer.linkProgram(pid);
-        if (!ok) {
-            std::string log = m_Renderer.getLinkLog(fs_id);
-            SHIPLOG_ERROR(log);
-        }
-        m_Renderer.deleteShader(vs_id);
-        m_Renderer.deleteShader(fs_id);
+        Airship::Pipeline pipeline = createPipeline();
 
         // Normalized device coordinates (NDC)
         // (-1,-1) lower-left corner, (1,1) upper-right
-        using VertexData = std::vector<Airship::VertexP>;
+        using VertexType = Airship::Utils::Point<float, 3>;
+        using VertexData = std::vector<VertexType>;
         VertexData verticesA = {
-            {{-0.5f, -0.5f, 0.0f}},
-            {{0.5f, -0.5f, 0.0f}},
-            {{0.0f, 0.5f, 0.0f}},
+            {-0.5f, -0.5f, 0.0f},
+            {0.5f, -0.5f, 0.0f},
+            {0.0f, 0.5f, 0.0f},
         };
+        Airship::Buffer verticesABuffer;
+        verticesABuffer.update(verticesA.size() * sizeof(VertexType), verticesA.data());
 
         VertexData verticesB = {
-            {{-0.5f, 0.5f, 0.0f}},
-            {{0.5f, 0.5f, 0.0f}},
-            {{0.0f, -0.5f, 0.0f}},
+            {-0.5f, 0.5f, 0.0f},
+            {0.5f, 0.5f, 0.0f},
+            {0.0f, -0.5f, 0.0f},
         };
+        Airship::Buffer verticesBBuffer;
+        verticesBBuffer.update(verticesB.size() * sizeof(VertexType), verticesB.data());
 
-        std::vector<Airship::Mesh<Airship::VertexP>> meshes{verticesA, verticesB};
+        std::vector<Airship::Mesh> meshes(2);
+        meshes[0].setAttributeStream("Position", {.buffer = &verticesABuffer,
+                                                  .stride = sizeof(VertexType),
+                                                  .offset = 0,
+                                                  .format = Airship::VertexFormat::Float3});
+        meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
+        meshes[1].setAttributeStream("Position", {.buffer = &verticesBBuffer,
+                                                  .stride = sizeof(VertexType),
+                                                  .offset = 0,
+                                                  .format = Airship::VertexFormat::Float3});
+        meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
         // TODO: Pull into application?
         while (!m_MainWin.value()->shouldClose()) {
             m_MainWin.value()->pollEvents();
 
             // Draw code
-            m_Renderer.bindProgram(pid);
-            m_Renderer.draw(meshes);
+            pipeline.bind();
+            m_Renderer.draw(meshes, pipeline);
 
             // Show the rendered buffer
             m_MainWin.value()->swapBuffers();

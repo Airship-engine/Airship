@@ -21,6 +21,7 @@
 #include "spdlog/tweakme.h"
 
 // NOLINTBEGIN(cppcoreguidelines-macro-usage)
+#define SHIPLOG_TRACE(...) SPDLOG_LOGGER_TRACE(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_DEBUG(...) SPDLOG_LOGGER_DEBUG(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_INFO(...) SPDLOG_LOGGER_INFO(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)
 #define SHIPLOG_ALERT(...) SPDLOG_LOGGER_WARN(Airship::ShipLog::get().GetLogger(), __VA_ARGS__)

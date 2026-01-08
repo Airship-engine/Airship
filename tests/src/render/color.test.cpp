@@ -84,4 +84,19 @@ TEST(Color, HSV) {
             }
         }
     }
+
+    // HSV hues are periodic. When converted to RGB colors, they should generate the same
+    // color every 360 degrees
+    Airship::HSVColor hsv(15.0f, 1.0f, 1.0f);
+    Airship::Color rgb = hsv;
+    for (int i = 0; i < 10; i++) {
+        hsv.h += 360.0f;
+        EXPECT_EQ(rgb, Airship::Color(hsv));
+    }
+    hsv = Airship::HSVColor(rgb);
+    for (int i = 0; i < 10; i++) {
+        hsv.h -= 360.0f;
+        EXPECT_EQ(rgb, Airship::Color(hsv));
+    }
+    expect_hsv(Airship::Colors::White, 0.0f, 0.0f, 1.0f);
 }

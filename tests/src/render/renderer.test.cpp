@@ -4,11 +4,11 @@
 #include <string>
 #include <vector>
 
-#include "core/logging.h"
 #include "core/window.h"
 #include "gtest/gtest.h"
 #include "render/color.h"
 #include "test/common.h"
+#include "utils.hpp"
 
 TEST(Renderer, Init) {
     // Use Application code to handle getting a window
@@ -42,13 +42,8 @@ TEST(Renderer, Init) {
         "}\0";
     // clang-format on
 
-    const Airship::Renderer::shader_id vs_id = r.createShader(Airship::ShaderType::Vertex);
-    bool ok = r.compileShader(vs_id, vertexShaderSource);
-    EXPECT_TRUE(ok);
-    if (!ok) {
-        const std::string log = r.getCompileLog(vs_id);
-        SHIPLOG_ERROR(log);
-    }
+    EXPECT_NO_THROW(Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource));
+    Airship::Shader vertexShader(Airship::ShaderType::Vertex, vertexShaderSource);
 
     // clang-format off
     const char* fragmentShaderSource =
@@ -60,50 +55,52 @@ TEST(Renderer, Init) {
         "}\0";
     // clang-format on
 
-    const Airship::Renderer::shader_id fs_id = r.createShader(Airship::ShaderType::Fragment);
-    ok = r.compileShader(fs_id, fragmentShaderSource);
-    EXPECT_TRUE(ok);
-    if (!ok) {
-        const std::string log = r.getCompileLog(fs_id);
-        SHIPLOG_ERROR(log);
-    }
+    EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
+    Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    const Airship::Renderer::program_id pid = r.createProgram();
-    r.attachShader(pid, vs_id);
-    r.attachShader(pid, fs_id);
-    ok = r.linkProgram(pid);
-    EXPECT_TRUE(ok);
-    if (!ok) {
-        const std::string log = r.getLinkLog(fs_id);
-        SHIPLOG_ERROR(log);
-    }
-    r.deleteShader(vs_id);
-    r.deleteShader(fs_id);
+    EXPECT_NO_THROW(
+        Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}}));
+    Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}});
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
-    using VertexData = std::vector<Airship::VertexP>;
+    using VertexType = Airship::Utils::Point<float, 3>;
+    using VertexData = std::vector<VertexType>;
     const VertexData verticesA = {
-        {{-0.5f, -0.5f, 0.0f}},
-        {{0.5f, -0.5f, 0.0f}},
-        {{0.0f, 0.5f, 0.0f}},
+        {-0.5f, -0.5f, 0.0f},
+        {0.5f, -0.5f, 0.0f},
+        {0.0f, 0.5f, 0.0f},
     };
+    Airship::Buffer verticesABuffer;
+    verticesABuffer.update(verticesA.size() * sizeof(VertexType), verticesA.data());
 
     const VertexData verticesB = {
-        {{-0.5f, 0.5f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}},
-        {{0.0f, -0.5f, 0.0f}},
+        {-0.5f, 0.5f, 0.0f},
+        {0.5f, 0.5f, 0.0f},
+        {0.0f, -0.5f, 0.0f},
     };
+    Airship::Buffer verticesBBuffer;
+    verticesBBuffer.update(verticesB.size() * sizeof(VertexType), verticesB.data());
 
-    std::vector<Airship::Mesh<Airship::VertexP>> meshes{verticesA, verticesB};
+    std::vector<Airship::Mesh> meshes(2);
+    meshes[0].setAttributeStream("Position", {.buffer = &verticesABuffer,
+                                              .stride = sizeof(VertexType),
+                                              .offset = 0,
+                                              .format = Airship::VertexFormat::Float3});
+    meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
+    meshes[1].setAttributeStream("Position", {.buffer = &verticesBBuffer,
+                                              .stride = sizeof(VertexType),
+                                              .offset = 0,
+                                              .format = Airship::VertexFormat::Float3});
+    meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {
         window->pollEvents();
 
         // Draw code
-        r.bindProgram(pid);
-        r.draw(meshes);
+        pipeline.bind();
+        r.draw(meshes, pipeline);
 
         // Show the rendered buffer
         window->swapBuffers();

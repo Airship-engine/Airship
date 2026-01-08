@@ -3,65 +3,60 @@
 #include <cstddef>
 #include <cstdint>
 #include <string>
-#include <tuple>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
-#include "core/utils.hpp"
+#include "logging.h"
 #include "render/color.h"
 
 namespace Airship {
 
-struct VertexP {
-    VertexP() = default;
-    VertexP(const Utils::Point<float, 3>& pos) : m_Position(pos) {}
-    static void setAttribData();
-
-    Utils::Point<float, 3> m_Position;
-};
-
-struct VertexPC {
-    VertexPC() = default;
-    VertexPC(const Utils::Point<float, 3>& pos, Color color) : m_Position(pos), m_Color(color) {}
-    static void setAttribData();
-
-    Utils::Point<float, 3> m_Position;
-    Color m_Color;
-};
-
-template <typename VertexT>
-struct Mesh {
-    using vao_id = unsigned int;
+// RAII buffer wrapper
+struct Buffer {
     using buffer_id = unsigned int;
-    Mesh(const std::vector<VertexT>& vertices);
-    Mesh();
-    VertexT& addVertex() {
-        m_Invalid = true;
-        return m_Vertices.emplace_back();
-    }
-    std::tuple<VertexT&, VertexT&, VertexT&> addTriangle() {
-        m_Invalid = true;
-        m_Vertices.reserve(m_Vertices.size() + 3);
-        auto& v1 = m_Vertices.emplace_back();
-        auto& v2 = m_Vertices.emplace_back();
-        auto& v3 = m_Vertices.emplace_back();
-        return {v1, v2, v3};
-    }
-    void draw();
-    void invalidate() { m_Invalid = true; }
-    std::vector<VertexT>& getVertices() { return m_Vertices; }
+    Buffer();
+    ~Buffer();
+    [[nodiscard]] buffer_id get() const { return m_BufferID; }
+    void bind() const;
+    void update(size_t bytes, const void* data) const;
 
 private:
-    [[nodiscard]] vao_id createVertexArrayObject() const;
-    void bindVertexArrayObject() const;
+    buffer_id m_BufferID;
+};
 
-    [[nodiscard]] buffer_id createBuffer() const;
-    void bindBuffer() const;
-    void copyBuffer(size_t bytes, const void* data) const;
+enum class VertexFormat : uint8_t {
+    Float,
+    Float3,
+    Float4
+};
 
-    vao_id m_VertexArrayObject;
-    buffer_id m_BufferArrayObject;
-    std::vector<VertexT> m_Vertices;
-    bool m_Invalid = true;
+struct VertexAttributeStream {
+    Buffer* buffer;
+    uint32_t stride;
+    uint32_t offset;
+    VertexFormat format;
+};
+
+struct Mesh {
+    using vao_id = unsigned int;
+    void draw() const;
+    [[nodiscard]] const VertexAttributeStream* getStream(const std::string& name) const {
+        if (!m_VertexAttributeStreams.contains(name)) {
+            SHIPLOG_ALERT("Vertex stream '{}' not found", name);
+            return nullptr;
+        }
+        return &m_VertexAttributeStreams.at(name);
+    }
+    void setAttributeStream(const std::string& name, const VertexAttributeStream& stream) {
+        m_VertexAttributeStreams[name] = stream;
+    }
+    void setVertexCount(int count) { m_VertexCount = count; }
+    int vertexCount() const { return m_VertexCount; }
+
+private:
+    int m_VertexCount = 0;
+    std::unordered_map<std::string, VertexAttributeStream> m_VertexAttributeStreams;
 };
 
 enum class ShaderType : uint8_t {
@@ -69,29 +64,60 @@ enum class ShaderType : uint8_t {
     Fragment
 };
 
+class Shader {
+    using shader_id = unsigned int;
+
+public:
+    Shader(ShaderType type, const std::string& source);
+    [[nodiscard]] shader_id get() const { return m_ShaderID; }
+    ~Shader();
+
+private:
+    [[nodiscard]] std::string getCompileLog() const;
+    shader_id m_ShaderID;
+};
+
+class Pipeline {
+    using program_id = unsigned int;
+
+public:
+    // Abstraction on per-vertex shader variables, e.g.
+    // layout (location = 0) in vec3 aPos
+    struct VertexAttributeDesc {
+        std::string name;
+        uint32_t location;
+        VertexFormat format;
+    };
+
+    Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs = {});
+    Pipeline(const Pipeline& other) = delete;
+    Pipeline(Pipeline&& other) noexcept {
+        std::swap(m_ProgramID, other.m_ProgramID);
+        std::swap(m_VertexAttribs, other.m_VertexAttribs);
+    }
+    Pipeline& operator=(const Pipeline& other) = delete;
+    Pipeline& operator=(Pipeline&& other) noexcept {
+        std::swap(m_ProgramID, other.m_ProgramID);
+        return *this;
+    }
+    ~Pipeline();
+    void bind() const;
+    [[nodiscard]] const std::vector<VertexAttributeDesc>& getVertexAttributes() const { return m_VertexAttribs; }
+
+private:
+    [[nodiscard]] std::string getLinkLog() const;
+    program_id m_ProgramID = 0;
+    std::vector<VertexAttributeDesc> m_VertexAttribs;
+};
+
 class Renderer {
 public:
     Renderer() = default;
-    using shader_id = unsigned int;
-    using program_id = unsigned int;
     void init();
     void resize(int width, int height) const;
 
-    [[nodiscard]] shader_id createShader(ShaderType stype) const;
-    bool compileShader(shader_id sid, const char* source) const;
-    [[nodiscard]] std::string getCompileLog(shader_id sid) const;
-    void deleteShader(shader_id sid) const;
-
-    [[nodiscard]] program_id createProgram() const;
-    void attachShader(program_id pid, shader_id sid) const;
-    [[nodiscard]] bool linkProgram(program_id pid) const;
-    [[nodiscard]] std::string getLinkLog(program_id pid) const;
-    void bindProgram(program_id pid) const;
-
-    template <typename VertexT>
-    void draw(std::vector<Mesh<VertexT>>& meshes, bool clear = true) const;
-    template <typename VertexT>
-    void draw(Mesh<VertexT>& meshes, bool clear = true) const;
+    void draw(std::vector<Mesh>& meshes, const Pipeline& pipeline, bool clear = true) const;
+    void draw(Mesh& meshes, const Pipeline& pipeline, bool clear = true) const;
     void setClearColor(const RGBColor& color);
 
 private:
