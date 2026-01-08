@@ -11,8 +11,10 @@
 #include <vector>
 
 #include "color.h"
+#include "input.h"
 #include "opengl/renderer.h"
 #include "utils.hpp"
+#include "window.h"
 
 constexpr float DOWN_VEL = 0.2f; // Screen space / second
 constexpr float HUE_ROTATION_SPEED = 8.0f; // Degrees / second
@@ -20,6 +22,7 @@ constexpr float SPAWN_INTERVAL = 0.5f; // Seconds between triangle spawns
 constexpr float MIN_TRIANGLE_EXTENT = 0.1f; // Min distance from center to vertex
 constexpr float MAX_TRIANGLE_EXTENT = 0.4f; // Max distance from center to vertex
 constexpr float AVOIDANCE_DEGREES = 90.0f; // Hue degrees away from background for triangle spawn
+constexpr float FAST_MODE_MULT = 3.0f; // Multiplier for hue rotation and falling speed in fast mode
 
 // clang-format off
 const char* const triangleVertexShaderSource =
@@ -93,6 +96,16 @@ const char* const bgFragmentShaderSource =
     "   FragColor = rgbColor(vertexHue);\n"
     "}\0";
 // clang-format on
+
+void Game::OnKeyPress(const Airship::Window& /*window*/, Airship::Input::Key key, int /*scancode*/,
+                      Airship::Input::KeyAction action, Airship::Input::KeyMods /*mods*/) {
+    if (key == Airship::Input::Key::Space) {
+        if (action == Airship::Input::KeyAction::Press)
+            m_MoveFast = true;
+        else if (action == Airship::Input::KeyAction::Release)
+            m_MoveFast = false;
+    }
+};
 
 void Game::CreatePipelines() {
     Airship::Shader triangleVertexShader(Airship::ShaderType::Vertex, triangleVertexShaderSource);
@@ -198,6 +211,7 @@ void Game::OnStart() {
 void Game::OnGameLoop(float elapsed) {
     constexpr int maxTriangles = 20;
     elapsed = std::min(elapsed, 0.1f); // Clamp to avoid large jumps
+    if (m_MoveFast) elapsed *= FAST_MODE_MULT;
 
     m_TimeSinceSpawn += elapsed;
     if (m_TimeSinceSpawn >= SPAWN_INTERVAL) {

@@ -12,6 +12,7 @@ set(AirshipCoreHeaders
     include/core/application.h
     include/core/convar.h
     include/core/event.h
+    include/core/input.h
     include/core/logging.h
     include/core/utils.hpp
     include/core/window.h

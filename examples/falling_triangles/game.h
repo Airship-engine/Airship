@@ -3,8 +3,10 @@
 
 #include "color.h"
 #include "core/application.h"
+#include "input.h"
 #include "opengl/renderer.h"
 #include "utils.hpp"
+#include "window.h"
 
 using vec3 = Airship::Utils::Point<float, 3>;
 
@@ -19,6 +21,8 @@ public:
 
     void OnStart() override;
     void OnGameLoop(float elapsed) override;
+    void OnKeyPress(const Airship::Window& window, Airship::Input::Key key, int scancode,
+                    Airship::Input::KeyAction action, Airship::Input::KeyMods mods) override;
 
 private:
     void CreatePipelines();
@@ -36,4 +40,5 @@ private:
 
     float m_TimeSinceSpawn = 1.0f;
     int m_LowestTriangleIndex = 0;
+    bool m_MoveFast = false;
 };
