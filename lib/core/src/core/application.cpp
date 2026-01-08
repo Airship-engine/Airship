@@ -11,14 +11,16 @@
 namespace Airship {
 
 void Application::Run() {
-    GLFW_CHECK(glfwInit());
+    glfwInit();
+    GLFW_CHECK();
     OnStart();
 }
 
 Application::~Application() {
     m_Windows.clear();
 
-    GLFW_CHECK(glfwTerminate());
+    glfwTerminate();
+    GLFW_CHECK();
 }
 
 std::optional<Window*> Application::CreateWindow(int w, int h, const std::string& title, bool visible) {
