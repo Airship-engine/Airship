@@ -4,6 +4,7 @@
 #include <string>
 
 #include "core/window.h"
+#include "render/opengl/renderer.h"
 
 namespace Airship {
 class Application {
@@ -16,11 +17,16 @@ public:
 
 protected:
     virtual void OnStart() {}
+    virtual void OnGameLoop(float /*dt*/) {}
+
+    bool m_ShouldClose = false;
+    std::unique_ptr<Renderer> m_Renderer;
 
     std::unique_ptr<Window> m_MainWindow;
     int m_Width = 800, m_Height = 600;
 
 private:
+    void GameLoop();
     std::string m_Title;
     bool m_ServerMode = false;
 };
