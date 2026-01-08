@@ -1,4 +1,3 @@
-#include <optional>
 #include <string_view>
 
 #include "core/application.h"
@@ -31,15 +30,9 @@ extern const ::testing::Environment* airship_environment;
 
 class GameClass : public Airship::Application {
 public:
-    GameClass() = default;
-    GameClass(int height, int width) : height(height), width(width) {}
-    [[nodiscard]] std::optional<Airship::Window*> GetWindow() const { return win; }
-
-protected:
-    void OnStart() override;
-
-    int height = 800, width = 600;
-    std::optional<Airship::Window*> win;
+    GameClass(int width, int height) : Airship::Application(width, height, "test app") {}
+    GameClass() : GameClass(600, 800) {}
+    [[nodiscard]] Airship::Window* GetWindow() const { return m_MainWindow.get(); }
 };
 
 } // namespace Airship::Test

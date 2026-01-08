@@ -1,24 +1,27 @@
 #pragma once
 
 #include <memory>
-#include <optional>
 #include <string>
-#include <vector>
 
 #include "core/window.h"
 
 namespace Airship {
 class Application {
 public:
+    Application() = default;
+    Application(bool serverMode);
+    Application(int width, int height, std::string title);
     void Run();
     virtual ~Application();
 
 protected:
-    std::optional<Window*> CreateWindow(int w, int h, const std::string& title, bool visible = true);
-
     virtual void OnStart() {}
 
+    std::unique_ptr<Window> m_MainWindow;
+    int m_Width = 800, m_Height = 600;
+
 private:
-    std::vector<std::unique_ptr<Window>> m_Windows;
+    std::string m_Title;
+    bool m_ServerMode = false;
 };
 } // namespace Airship

@@ -169,13 +169,9 @@ void initTriangle(TriangleVertexData& v1, TriangleVertexData& v2, TriangleVertex
 } // namespace
 
 void Game::OnStart() {
-    auto window = CreateWindow(m_Width, m_Height, "Falling triangles Example");
-    assert(window.has_value());
-    m_MainWin = window.value();
-
     m_Renderer.init();
     m_Renderer.resize(m_Width, m_Height);
-    m_MainWin->setWindowResizeCallback([this](int width, int height) {
+    m_MainWindow->setWindowResizeCallback([this](int width, int height) {
         m_Renderer.resize(width, height);
         m_Height = height;
         m_Width = width;
@@ -220,7 +216,7 @@ void Game::OnStart() {
     int lowestTriangleIndex = 0;
     auto startTime = std::chrono::system_clock::now();
     float timeSinceSpawn = 0;
-    while (!m_MainWin->shouldClose()) {
+    while (!m_MainWindow->shouldClose()) {
         auto frameTime = std::chrono::system_clock::now() - startTime;
         startTime = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration<float>(frameTime).count();
@@ -267,7 +263,7 @@ void Game::OnStart() {
             hue -= HUE_ROTATION_SPEED * elapsed;
         }
         bgHuesBuffer.update(bgHues.size() * sizeof(float), bgHues.data());
-        m_MainWin->pollEvents();
+        m_MainWindow->pollEvents();
 
         // Draw code
         bg_pipeline.bind();
@@ -277,6 +273,6 @@ void Game::OnStart() {
         m_Renderer.draw(triangleMesh, triangles_pipeline, false);
 
         // Show the rendered buffer
-        m_MainWin->swapBuffers();
+        m_MainWindow->swapBuffers();
     }
 }
