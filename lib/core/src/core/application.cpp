@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "core/window.h"
+#include "input.h"
 #include "logging.h"
 #include "opengl/renderer.h"
 
@@ -30,6 +31,10 @@ void Application::Run() {
             m_Height = height;
             m_Width = width;
         });
+        m_MainWindow->setKeyPressCallback(
+            [this](const Window& window, Input::Key key, int scancode, Input::KeyAction action, Input::KeyMods mods) {
+                OnKeyPress(window, key, scancode, action, mods);
+            });
 
         m_Renderer = std::make_unique<Renderer>();
         m_Renderer->init();
