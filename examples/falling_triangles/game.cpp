@@ -112,16 +112,18 @@ void Game::CreatePipelines() {
     Airship::Shader triangleFragmentShader(Airship::ShaderType::Fragment, triangleFragmentShaderSource);
     Airship::Shader bgVertexShader(Airship::ShaderType::Vertex, bgVertexShaderSource);
     Airship::Shader bgFragmentShader(Airship::ShaderType::Fragment, bgFragmentShaderSource);
-    m_TriPipeline = std::make_unique<Airship::Pipeline>(triangleVertexShader, triangleFragmentShader,
-                                                        std::vector<Airship::Pipeline::VertexAttributeDesc>{
-                                                            {"Position", 0, Airship::VertexFormat::Float3},
-                                                            {"Color", 1, Airship::VertexFormat::Float4},
-                                                        });
-    m_BGPipeline = std::make_unique<Airship::Pipeline>(bgVertexShader, bgFragmentShader,
-                                                       std::vector<Airship::Pipeline::VertexAttributeDesc>{
-                                                           {"Position", 0, Airship::VertexFormat::Float3},
-                                                           {"Hue", 1, Airship::VertexFormat::Float},
-                                                       });
+    m_TriPipeline = std::make_unique<Airship::Pipeline>(
+        triangleVertexShader, triangleFragmentShader,
+        std::vector<Airship::Pipeline::VertexAttributeDesc>{
+            {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3},
+            {.name = "Color", .location = 1, .format = Airship::VertexFormat::Float4},
+        });
+    m_BGPipeline = std::make_unique<Airship::Pipeline>(
+        bgVertexShader, bgFragmentShader,
+        std::vector<Airship::Pipeline::VertexAttributeDesc>{
+            {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3},
+            {.name = "Hue", .location = 1, .format = Airship::VertexFormat::Float},
+        });
 }
 
 namespace {

@@ -33,7 +33,8 @@ protected:
         Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
         m_Pipeline = std::make_unique<Airship::Pipeline>(
             vertexShader, fragmentShader,
-            std::vector<Airship::Pipeline::VertexAttributeDesc>{{"Position", 0, Airship::VertexFormat::Float3}});
+            std::vector<Airship::Pipeline::VertexAttributeDesc>{
+                {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}});
     }
     void OnStart() override {
 
