@@ -45,9 +45,10 @@ TEST(Renderer, Init) {
     EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    EXPECT_NO_THROW(
-        Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}}));
-    Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}});
+    EXPECT_NO_THROW(Airship::Pipeline pipeline(
+        vertexShader, fragmentShader, {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}}));
+    Airship::Pipeline pipeline(vertexShader, fragmentShader,
+                               {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}});
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
