@@ -52,7 +52,7 @@ struct Mesh {
         m_VertexAttributeStreams[name] = stream;
     }
     void setVertexCount(int count) { m_VertexCount = count; }
-    int vertexCount() const { return m_VertexCount; }
+    [[nodiscard]] int vertexCount() const { return m_VertexCount; }
 
 private:
     int m_VertexCount = 0;
