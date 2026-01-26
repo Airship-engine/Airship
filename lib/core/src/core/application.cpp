@@ -1,29 +1,73 @@
 #include "core/application.h"
 
+#include <algorithm>
 #include <cassert>
+#include <chrono>
 #include <memory>
-#include <optional>
 #include <string>
+#include <utility>
 
-#include "GLFW/glfw3.h"
 #include "core/window.h"
+#include "input.h"
+#include "logging.h"
+#include "opengl/renderer.h"
 
 namespace Airship {
 
+Application::Application(bool servermode) : m_ServerMode(servermode) {
+    assert(m_ServerMode);
+}
+
+Application::Application(int width, int height, std::string title) :
+    m_Width(width), m_Height(height), m_Title(std::move(title)) {}
+
 void Application::Run() {
-    GLFW_CHECK(glfwInit());
+    if (!m_ServerMode) {
+        Window::Init();
+        if (m_Width < 0 || m_Height < 0) SHIPLOG_ERROR("Creating a window with negative dimensions");
+        m_MainWindow = std::make_unique<Window>(m_Width, m_Height, m_Title, true);
+        m_MainWindow->setWindowResizeCallback([this](int width, int height) {
+            m_Renderer->resize(width, height);
+            m_Height = height;
+            m_Width = width;
+        });
+        m_MainWindow->setKeyPressCallback(
+            [this](const Window& window, Input::Key key, int scancode, Input::KeyAction action, Input::KeyMods mods) {
+                OnKeyPress(window, key, scancode, action, mods);
+            });
+
+        m_Renderer = std::make_unique<Renderer>();
+        m_Renderer->init();
+        m_Renderer->resize(m_Width, m_Height);
+    }
     OnStart();
+    GameLoop();
+}
+
+void Application::GameLoop() {
+    auto startTime = std::chrono::system_clock::now();
+    while (!m_ShouldClose) {
+        if (m_MainWindow) m_MainWindow->pollEvents();
+        auto frameTime = std::chrono::system_clock::now() - startTime;
+        startTime = std::chrono::system_clock::now();
+        auto elapsed = std::chrono::duration<float>(frameTime).count();
+        elapsed = std::min(elapsed, 0.1f); // Clamp to avoid large jumps
+
+        OnGameLoop(elapsed);
+
+        // Show the rendered buffer
+        if (m_MainWindow) {
+            m_MainWindow->swapBuffers();
+            m_ShouldClose |= m_MainWindow->shouldClose();
+        }
+    }
 }
 
 Application::~Application() {
-    m_Windows.clear();
-
-    GLFW_CHECK(glfwTerminate());
-}
-
-std::optional<Window*> Application::CreateWindow(int w, int h, const std::string& title, bool visible) {
-    if (w < 1 || h < 1) return std::nullopt;
-    return m_Windows.emplace_back(std::make_unique<Window>(w, h, title, visible)).get();
+    if (!m_ServerMode) {
+        m_MainWindow.reset();
+        Window::Terminate();
+    }
 }
 
 } // namespace Airship

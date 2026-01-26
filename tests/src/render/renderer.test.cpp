@@ -6,7 +6,6 @@
 
 #include "core/window.h"
 #include "gtest/gtest.h"
-#include "render/color.h"
 #include "test/common.h"
 #include "utils.hpp"
 
@@ -16,21 +15,9 @@ TEST(Renderer, Init) {
     app.Run();
 
     // We have a window, and it'll only be destroyed when app goes out of scope
-    Airship::Window* window = nullptr;
-    if (auto windowVar = app.GetWindow(); windowVar.has_value()) {
-        window = windowVar.value();
-    } else {
-        FAIL() << "Failed to create window for rendering tests.";
-    }
+    Airship::Window* window = app.GetWindow();
     EXPECT_TRUE(window != nullptr);
     EXPECT_TRUE(window->Get() != nullptr);
-
-    // Should ultimately be handled inside of the application.
-    Airship::Renderer r;
-    r.init();
-    r.setClearColor(Airship::Colors::CornflowerBlue);
-    r.resize(window->GetSize().x(), window->GetSize().y());
-    window->setWindowResizeCallback([&r](int width, int height) { r.resize(width, height); });
 
     // clang-format off
     const char* vertexShaderSource =
@@ -58,9 +45,10 @@ TEST(Renderer, Init) {
     EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    EXPECT_NO_THROW(
-        Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}}));
-    Airship::Pipeline pipeline(vertexShader, fragmentShader, {{"Position", 0, Airship::VertexFormat::Float3}});
+    EXPECT_NO_THROW(Airship::Pipeline pipeline(
+        vertexShader, fragmentShader, {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}}));
+    Airship::Pipeline pipeline(vertexShader, fragmentShader,
+                               {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}});
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
@@ -94,13 +82,16 @@ TEST(Renderer, Init) {
                                               .format = Airship::VertexFormat::Float3});
     meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
+    auto* renderer = app.GetRenderer();
+    ASSERT_NE(renderer, nullptr);
+
     // TODO: Pull into application?
     while (!window->shouldClose()) {
         window->pollEvents();
 
         // Draw code
         pipeline.bind();
-        r.draw(meshes, pipeline);
+        renderer->draw(meshes, pipeline);
 
         // Show the rendered buffer
         window->swapBuffers();
