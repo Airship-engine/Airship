@@ -120,8 +120,9 @@ public:
     void init();
     void resize(int width, int height) const;
 
-    void draw(std::vector<Mesh>& meshes, const Pipeline& pipeline, bool clear = true) const;
-    void draw(Mesh& meshes, const Pipeline& pipeline, bool clear = true) const;
+    void clear() const;
+    void draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, bool doClear = true) const;
+    void draw(const Mesh& meshes, const Pipeline& pipeline, bool doClear = true) const;
     void setClearColor(const RGBColor& color);
 
 private:

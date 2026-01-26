@@ -294,23 +294,21 @@ Pipeline::~Pipeline() {
     m_ProgramID = 0;
 }
 
-void Renderer::draw(std::vector<Mesh>& meshes, const Pipeline& pipeline, bool clear) const {
-    if (clear) {
-        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
-        CHECK_GL_ERROR();
-    }
-    for (auto& mesh : meshes)
+void Renderer::clear() const {
+    glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+    CHECK_GL_ERROR();
+}
+
+void Renderer::draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, bool doClear) const {
+    if (doClear) clear();
+    for (const auto& mesh : meshes)
         draw(mesh, pipeline, false);
 }
 
-void Renderer::draw(Mesh& mesh, const Pipeline& pipeline, bool clear) const {
+void Renderer::draw(const Mesh& mesh, const Pipeline& pipeline, bool doClear) const {
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
-    if (clear) {
-        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
-        CHECK_GL_ERROR();
-    }
+    if (doClear) clear();
     // TODO: Cache VAO per mesh/pipeline combo
     VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
     pipeline.bind();
