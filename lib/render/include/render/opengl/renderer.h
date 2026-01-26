@@ -72,6 +72,7 @@ class Shader {
 
 public:
     Shader(ShaderType type, const std::string& source);
+    static Shader from_file(ShaderType type, const std::string& filename);
     [[nodiscard]] shader_id get() const { return m_ShaderID; }
     ~Shader();
 

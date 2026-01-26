@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -216,6 +218,17 @@ Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreat
     }
     assert(ok == GL_TRUE);
     CHECK_GL_ERROR();
+}
+
+Shader Shader::from_file(ShaderType type, const std::string& filename) {
+    std::ifstream ifs(filename);
+    if (!ifs) {
+        SHIPLOG_ERROR("Cannot open shader file: {}", filename);
+        assert(false);
+    }
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+    return Shader(type, buffer.str());
 }
 
 std::string Shader::getCompileLog() const {
