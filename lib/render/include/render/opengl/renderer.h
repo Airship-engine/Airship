@@ -25,8 +25,9 @@ private:
     buffer_id m_BufferID;
 };
 
-enum class VertexFormat : uint8_t {
+enum class ShaderDataType : uint8_t {
     Float,
+    Float2,
     Float3,
     Float4
 };
@@ -35,7 +36,7 @@ struct VertexAttributeStream {
     Buffer* buffer;
     uint32_t stride;
     uint32_t offset;
-    VertexFormat format;
+    ShaderDataType format;
 };
 
 struct Mesh {
@@ -86,7 +87,7 @@ public:
     struct VertexAttributeDesc {
         std::string name;
         uint32_t location;
-        VertexFormat format;
+        ShaderDataType format;
     };
 
     Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs = {});

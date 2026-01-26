@@ -59,13 +59,15 @@ struct VertexFormatInfo {
 
 namespace {
 
-VertexFormatInfo getVertexFormatInfo(VertexFormat format) {
+VertexFormatInfo getVertexFormatInfo(ShaderDataType format) {
     switch (format) {
-    case VertexFormat::Float:
+    case ShaderDataType::Float:
         return {.components = 1, .type = GL_FLOAT, .normalized = GL_FALSE};
-    case VertexFormat::Float3:
+    case ShaderDataType::Float2:
+        return {.components = 2, .type = GL_FLOAT, .normalized = GL_FALSE};
+    case ShaderDataType::Float3:
         return {.components = 3, .type = GL_FLOAT, .normalized = GL_FALSE};
-    case VertexFormat::Float4:
+    case ShaderDataType::Float4:
         return {.components = 4, .type = GL_FLOAT, .normalized = GL_FALSE};
     }
     SHIPLOG_ERROR("Unable to get vertex format info");

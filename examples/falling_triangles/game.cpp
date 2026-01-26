@@ -115,14 +115,14 @@ void Game::CreatePipelines() {
     m_TriPipeline = std::make_unique<Airship::Pipeline>(
         triangleVertexShader, triangleFragmentShader,
         std::vector<Airship::Pipeline::VertexAttributeDesc>{
-            {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3},
-            {.name = "Color", .location = 1, .format = Airship::VertexFormat::Float4},
+            {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3},
+            {.name = "Color", .location = 1, .format = Airship::ShaderDataType::Float4},
         });
     m_BGPipeline = std::make_unique<Airship::Pipeline>(
         bgVertexShader, bgFragmentShader,
         std::vector<Airship::Pipeline::VertexAttributeDesc>{
-            {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3},
-            {.name = "Hue", .location = 1, .format = Airship::VertexFormat::Float},
+            {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3},
+            {.name = "Hue", .location = 1, .format = Airship::ShaderDataType::Float},
         });
 }
 
@@ -195,19 +195,20 @@ void Game::OnStart() {
 
     m_BGMesh.setAttributeStream(
         "Position",
-        {.buffer = m_BGBuffer.get(), .stride = sizeof(vec3), .offset = 0, .format = Airship::VertexFormat::Float3});
-    m_BGMesh.setAttributeStream(
-        "Hue",
-        {.buffer = m_BGHuesBuffer.get(), .stride = sizeof(float), .offset = 0, .format = Airship::VertexFormat::Float});
+        {.buffer = m_BGBuffer.get(), .stride = sizeof(vec3), .offset = 0, .format = Airship::ShaderDataType::Float3});
+    m_BGMesh.setAttributeStream("Hue", {.buffer = m_BGHuesBuffer.get(),
+                                        .stride = sizeof(float),
+                                        .offset = 0,
+                                        .format = Airship::ShaderDataType::Float});
     m_BGMesh.setVertexCount(6);
     m_TriMesh.setAttributeStream("Position", {.buffer = m_TriBuffer.get(),
                                               .stride = sizeof(TriangleVertexData),
                                               .offset = offsetof(TriangleVertexData, position),
-                                              .format = Airship::VertexFormat::Float3});
+                                              .format = Airship::ShaderDataType::Float3});
     m_TriMesh.setAttributeStream("Color", {.buffer = m_TriBuffer.get(),
                                            .stride = sizeof(TriangleVertexData),
                                            .offset = offsetof(TriangleVertexData, color),
-                                           .format = Airship::VertexFormat::Float4});
+                                           .format = Airship::ShaderDataType::Float4});
 }
 
 void Game::OnGameLoop(float elapsed) {
