@@ -251,6 +251,35 @@ Shader::~Shader() {
     CHECK_GL_ERROR();
 }
 
+template <size_t N>
+void Uniform::SetFloatVector(int program, const std::string& name, const float* val, size_t count) {
+    GLint loc = glGetUniformLocation(program, name.c_str());
+    if (loc == -1) {
+        SHIPLOG_TRACE("Skipping setting {} - Not found in program.", name);
+        return;
+    }
+
+    SHIPLOG_TRACE("Setting uniform {} at location {} to {}", name, loc, *val);
+    int count_int = static_cast<int>(count);
+    if constexpr (N == 1) {
+        glUniform1fv(loc, count_int, val);
+    } else if constexpr (N == 2) {
+        glUniform2fv(loc, count_int, val);
+    } else if constexpr (N == 3) {
+        glUniform3fv(loc, count_int, val);
+    } else if constexpr (N == 4) {
+        glUniform4fv(loc, count_int, val);
+    } else {
+        static_assert(false, "Invalid number of unform compontnts.");
+    }
+}
+
+// Only vec1-vec4 allowed
+template void Uniform::SetFloatVector<1>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<2>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<3>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<4>(int program, const std::string& name, const float* val, size_t count);
+
 Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
     m_ProgramID(glCreateProgram()), m_VertexAttribs(attribs) {
     SHIPLOG_TRACE("Linking pipeline {}", m_ProgramID);
@@ -294,6 +323,10 @@ Pipeline::~Pipeline() {
     m_ProgramID = 0;
 }
 
+void Pipeline::bindUniforms() const {
+    if (m_SetUniformCallback) m_SetUniformCallback();
+}
+
 void Renderer::clear() const {
     glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT);
@@ -312,6 +345,7 @@ void Renderer::draw(const Mesh& mesh, const Pipeline& pipeline, bool doClear) co
     // TODO: Cache VAO per mesh/pipeline combo
     VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
     pipeline.bind();
+    pipeline.bindUniforms();
     vao.bind();
     mesh.draw();
 }

@@ -1,7 +1,9 @@
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdint>
+#include <functional>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -81,8 +83,39 @@ private:
     shader_id m_ShaderID;
 };
 
+class Uniform {
+public:
+    Uniform(ShaderDataType format) : m_Format(format) {}
+    virtual ~Uniform() = default;
+
+    template <size_t N>
+    static void SetFloatVector(int program, const std::string& name, const float* val, size_t count = 1);
+
+protected:
+    ShaderDataType m_Format;
+};
+
+// Can be extended by the user to set uniforms from user-defined classes
+template <typename T>
+struct UniformTraits {};
+
+template <>
+struct UniformTraits<float> {
+    static void Set(int program, const std::string& name, float val) {
+        Uniform::SetFloatVector<1>(program, name, &val);
+    }
+};
+
+template <>
+struct UniformTraits<Color> {
+    static void Set(int program, const std::string& name, const Color& val) {
+        std::array<float, 4> vals = {val.r, val.g, val.b, val.a};
+        Uniform::SetFloatVector<4>(program, name, vals.data());
+    }
+};
 class Pipeline {
     using program_id = unsigned int;
+    using set_uniform_callback = std::function<void()>;
 
 public:
     // Abstraction on per-vertex shader variables, e.g.
@@ -108,10 +141,19 @@ public:
     void bind() const;
     [[nodiscard]] const std::vector<VertexAttributeDesc>& getVertexAttributes() const { return m_VertexAttribs; }
 
+    template <typename T>
+    void setUniform(const std::string& name, const T& val) {
+        UniformTraits<T>::Set(m_ProgramID, name, val);
+    }
+
+    void bindUniforms() const;
+    void setUniformsCallback(set_uniform_callback callback) { m_SetUniformCallback = std::move(callback); }
+
 private:
     [[nodiscard]] std::string getLinkLog() const;
     program_id m_ProgramID = 0;
     std::vector<VertexAttributeDesc> m_VertexAttribs;
+    set_uniform_callback m_SetUniformCallback;
 };
 
 class Renderer {
