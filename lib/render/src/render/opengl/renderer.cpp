@@ -136,8 +136,8 @@ void Mesh::draw() const {
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Buffer::Buffer() {
     // TODO: allow batch creation of buffers
-    SHIPLOG_TRACE("Creating buffer with ID {}", m_BufferID);
     glCreateBuffers(1, &m_BufferID);
+    SHIPLOG_TRACE("Created buffer with ID {}", m_BufferID);
     CHECK_GL_ERROR();
 }
 
@@ -166,8 +166,8 @@ void Buffer::update(size_t bytes, const void* data) const {
 
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
-    SHIPLOG_TRACE("Creating vertex array with ID {}", m_VertexArrayID);
     glCreateVertexArrays(1, &m_VertexArrayID);
+    SHIPLOG_TRACE("Created vertex array with ID {}", m_VertexArrayID);
     CHECK_GL_ERROR();
 }
 
