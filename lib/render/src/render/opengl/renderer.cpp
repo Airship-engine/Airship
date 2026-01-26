@@ -198,6 +198,10 @@ void Renderer::init() {
         SHIPLOG_MAYDAY("Unable to initialize gl3w");
         std::abort();
     }
+    glEnable(GL_BLEND);
+    CHECK_GL_ERROR();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    CHECK_GL_ERROR();
 }
 
 void Renderer::resize(int width, int height) const {
