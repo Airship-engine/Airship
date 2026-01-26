@@ -82,6 +82,7 @@ VertexArray setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) 
     for (const auto& attr : pipeline.getVertexAttributes()) {
         const VertexAttributeStream* stream = mesh.getStream(attr.name);
         assert(stream && "Shader requires missing vertex attribute");
+        assert(stream->format == attr.format);
 
         uint32_t binding = nextBinding++;
         SHIPLOG_DEBUG("Binding attribute '{}' to binding {}", attr.name, binding);
