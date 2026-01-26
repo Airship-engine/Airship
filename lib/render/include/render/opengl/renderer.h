@@ -16,6 +16,8 @@ namespace Airship {
 struct Buffer {
     using buffer_id = unsigned int;
     Buffer();
+    Buffer(const Buffer& other) = delete;
+    Buffer(Buffer&& other) noexcept;
     ~Buffer();
     [[nodiscard]] buffer_id get() const { return m_BufferID; }
     void bind() const;
@@ -33,7 +35,7 @@ enum class ShaderDataType : uint8_t {
 };
 
 struct VertexAttributeStream {
-    Buffer* buffer;
+    const Buffer* buffer;
     uint32_t stride;
     uint32_t offset;
     ShaderDataType format;

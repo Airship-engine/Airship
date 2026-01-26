@@ -142,6 +142,10 @@ Buffer::Buffer() {
     CHECK_GL_ERROR();
 }
 
+Buffer::Buffer(Buffer&& other) noexcept : m_BufferID(other.m_BufferID) {
+    other.m_BufferID = GL_INVALID_VALUE;
+}
+
 Buffer::~Buffer() {
     SHIPLOG_TRACE("Deleting buffer with ID {}", m_BufferID);
     glDeleteBuffers(1, &m_BufferID);
