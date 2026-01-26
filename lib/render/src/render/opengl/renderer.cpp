@@ -46,7 +46,7 @@ private:
     {                                                                                                                  \
         GLenum err;                                                                                                    \
         while ((err = glGetError()) != GL_NO_ERROR) {                                                                  \
-            SHIPLOG_ERROR("OpenGL error: {}", err);                                                                    \
+            SHIPLOG_ERROR("OpenGL error: {:X}", err);                                                                  \
             std::abort();                                                                                              \
         }                                                                                                              \
     }
