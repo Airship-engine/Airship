@@ -6,6 +6,8 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
+#include <fstream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>
@@ -46,7 +48,7 @@ private:
     {                                                                                                                  \
         GLenum err;                                                                                                    \
         while ((err = glGetError()) != GL_NO_ERROR) {                                                                  \
-            SHIPLOG_ERROR("OpenGL error: {}", err);                                                                    \
+            SHIPLOG_ERROR("OpenGL error: {:X}", err);                                                                  \
             std::abort();                                                                                              \
         }                                                                                                              \
     }
@@ -59,13 +61,15 @@ struct VertexFormatInfo {
 
 namespace {
 
-VertexFormatInfo getVertexFormatInfo(VertexFormat format) {
+VertexFormatInfo getVertexFormatInfo(ShaderDataType format) {
     switch (format) {
-    case VertexFormat::Float:
+    case ShaderDataType::Float:
         return {.components = 1, .type = GL_FLOAT, .normalized = GL_FALSE};
-    case VertexFormat::Float3:
+    case ShaderDataType::Float2:
+        return {.components = 2, .type = GL_FLOAT, .normalized = GL_FALSE};
+    case ShaderDataType::Float3:
         return {.components = 3, .type = GL_FLOAT, .normalized = GL_FALSE};
-    case VertexFormat::Float4:
+    case ShaderDataType::Float4:
         return {.components = 4, .type = GL_FLOAT, .normalized = GL_FALSE};
     }
     SHIPLOG_ERROR("Unable to get vertex format info");
@@ -80,6 +84,7 @@ VertexArray setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) 
     for (const auto& attr : pipeline.getVertexAttributes()) {
         const VertexAttributeStream* stream = mesh.getStream(attr.name);
         assert(stream && "Shader requires missing vertex attribute");
+        assert(stream->format == attr.format);
 
         uint32_t binding = nextBinding++;
         SHIPLOG_DEBUG("Binding attribute '{}' to binding {}", attr.name, binding);
@@ -134,9 +139,13 @@ void Mesh::draw() const {
 // NOLINTNEXTLINE(cppcoreguidelines-pro-type-member-init)
 Buffer::Buffer() {
     // TODO: allow batch creation of buffers
-    SHIPLOG_TRACE("Creating buffer with ID {}", m_BufferID);
     glCreateBuffers(1, &m_BufferID);
+    SHIPLOG_TRACE("Created buffer with ID {}", m_BufferID);
     CHECK_GL_ERROR();
+}
+
+Buffer::Buffer(Buffer&& other) noexcept : m_BufferID(other.m_BufferID) {
+    other.m_BufferID = GL_INVALID_VALUE;
 }
 
 Buffer::~Buffer() {
@@ -164,8 +173,8 @@ void Buffer::update(size_t bytes, const void* data) const {
 
 VertexArray::VertexArray() {
     // TODO: Allow batch creation of VAOs
-    SHIPLOG_TRACE("Creating vertex array with ID {}", m_VertexArrayID);
     glCreateVertexArrays(1, &m_VertexArrayID);
+    SHIPLOG_TRACE("Created vertex array with ID {}", m_VertexArrayID);
     CHECK_GL_ERROR();
 }
 
@@ -189,6 +198,10 @@ void Renderer::init() {
         SHIPLOG_MAYDAY("Unable to initialize gl3w");
         std::abort();
     }
+    glEnable(GL_BLEND);
+    CHECK_GL_ERROR();
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    CHECK_GL_ERROR();
 }
 
 void Renderer::resize(int width, int height) const {
@@ -211,6 +224,17 @@ Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreat
     CHECK_GL_ERROR();
 }
 
+Shader Shader::from_file(ShaderType type, const std::string& filename) {
+    std::ifstream ifs(filename);
+    if (!ifs) {
+        SHIPLOG_ERROR("Cannot open shader file: {}", filename);
+        assert(false);
+    }
+    std::stringstream buffer;
+    buffer << ifs.rdbuf();
+    return Shader(type, buffer.str());
+}
+
 std::string Shader::getCompileLog() const {
     int len;
     glGetShaderiv(m_ShaderID, GL_INFO_LOG_LENGTH, &len);
@@ -226,6 +250,35 @@ Shader::~Shader() {
     glDeleteShader(m_ShaderID);
     CHECK_GL_ERROR();
 }
+
+template <size_t N>
+void Uniform::SetFloatVector(int program, const std::string& name, const float* val, size_t count) {
+    GLint loc = glGetUniformLocation(program, name.c_str());
+    if (loc == -1) {
+        SHIPLOG_TRACE("Skipping setting {} - Not found in program.", name);
+        return;
+    }
+
+    SHIPLOG_TRACE("Setting uniform {} at location {} to {}", name, loc, *val);
+    int count_int = static_cast<int>(count);
+    if constexpr (N == 1) {
+        glUniform1fv(loc, count_int, val);
+    } else if constexpr (N == 2) {
+        glUniform2fv(loc, count_int, val);
+    } else if constexpr (N == 3) {
+        glUniform3fv(loc, count_int, val);
+    } else if constexpr (N == 4) {
+        glUniform4fv(loc, count_int, val);
+    } else {
+        static_assert(false, "Invalid number of unform compontnts.");
+    }
+}
+
+// Only vec1-vec4 allowed
+template void Uniform::SetFloatVector<1>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<2>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<3>(int program, const std::string& name, const float* val, size_t count);
+template void Uniform::SetFloatVector<4>(int program, const std::string& name, const float* val, size_t count);
 
 Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
     m_ProgramID(glCreateProgram()), m_VertexAttribs(attribs) {
@@ -270,26 +323,29 @@ Pipeline::~Pipeline() {
     m_ProgramID = 0;
 }
 
-void Renderer::draw(std::vector<Mesh>& meshes, const Pipeline& pipeline, bool clear) const {
-    if (clear) {
-        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
-        CHECK_GL_ERROR();
-    }
-    for (auto& mesh : meshes)
+void Pipeline::bindUniforms() const {
+    if (m_SetUniformCallback) m_SetUniformCallback();
+}
+
+void Renderer::clear() const {
+    glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT);
+    CHECK_GL_ERROR();
+}
+
+void Renderer::draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, bool doClear) const {
+    if (doClear) clear();
+    for (const auto& mesh : meshes)
         draw(mesh, pipeline, false);
 }
 
-void Renderer::draw(Mesh& mesh, const Pipeline& pipeline, bool clear) const {
+void Renderer::draw(const Mesh& mesh, const Pipeline& pipeline, bool doClear) const {
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
-    if (clear) {
-        glClearColor(m_ClearColor.r, m_ClearColor.g, m_ClearColor.b, m_ClearColor.a);
-        glClear(GL_COLOR_BUFFER_BIT);
-        CHECK_GL_ERROR();
-    }
+    if (doClear) clear();
     // TODO: Cache VAO per mesh/pipeline combo
     VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
     pipeline.bind();
+    pipeline.bindUniforms();
     vao.bind();
     mesh.draw();
 }

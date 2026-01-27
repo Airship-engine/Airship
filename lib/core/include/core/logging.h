@@ -34,6 +34,7 @@ namespace Airship {
 class ShipLog {
 public:
     enum class Level : uint8_t {
+        TRACE,
         DEBUG,
         INFO,
         ALERT,
@@ -116,6 +117,8 @@ public:
 private:
     constexpr static spdlog::level::level_enum ToSpdLog(Level shipLogLevel) {
         switch (shipLogLevel) {
+        case Level::TRACE:
+            return spdlog::level::trace;
         case Level::DEBUG:
             return spdlog::level::debug;
         case Level::INFO:
@@ -134,7 +137,7 @@ private:
     constexpr static Level FromSpdLog(spdlog::level::level_enum level) {
         switch (level) {
         case spdlog::level::trace:
-            [[fallthrough]];
+            return Level::TRACE;
         case spdlog::level::debug:
             return Level::DEBUG;
         case spdlog::level::info:
