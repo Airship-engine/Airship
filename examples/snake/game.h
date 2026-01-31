@@ -5,6 +5,7 @@
 #include "addons.h"
 #include "color.h"
 #include "core/application.h"
+#include "core/instrumentation.h"
 #include "grid.h"
 #include "input.h"
 #include "logging.h"
@@ -36,6 +37,7 @@ public:
 
 private:
     void draw() {
+        PROFILE_FUNCTION();
         if (m_Renderer) {
             m_Renderer->clear();
             m_BGMesh.draw(*m_Renderer, m_BGPipeline.get());

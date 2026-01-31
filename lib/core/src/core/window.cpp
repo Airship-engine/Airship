@@ -4,6 +4,7 @@
 #include <string>
 
 #include "GLFW/glfw3.h"
+#include "core/instrumentation.h"
 #include "input.h"
 #include "logging.h"
 #include "utils.hpp"
@@ -178,16 +179,19 @@ Utils::Point<int, 2> Window::GetSize() const {
 }
 
 void Window::swapBuffers() const {
+    PROFILE_FUNCTION();
     glfwSwapBuffers(m_Window);
     GLFW_CHECK();
 }
 
 bool Window::shouldClose() const {
+    PROFILE_FUNCTION();
     int ret = glfwWindowShouldClose(m_Window);
     GLFW_CHECK();
     return ret != 0;
 }
 void Window::pollEvents() const {
+    PROFILE_FUNCTION();
     glfwPollEvents();
     GLFW_CHECK();
 }

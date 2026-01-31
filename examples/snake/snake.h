@@ -210,6 +210,7 @@ public:
     }
 
     void Update(ivec2 applePos) {
+        PROFILE_FUNCTION();
         const auto& headPos = HeadPos();
         const auto& nextPos = m_Grid->getCoord(headPos + toVec(m_MoveDir));
         if (IntersectsSelf(nextPos)) {

@@ -2,10 +2,17 @@ add_library(AirshipCore)
 target_link_libraries(AirshipCore PUBLIC spdlog glfw AirshipRenderer AirshipCommonFlags)
 enable_clang_tidy(AirshipCore)
 
+option(AIRSHIP_INSTRUMENTATION "Enable instrumentation and trace logging" OFF)
+
+if (AIRSHIP_INSTRUMENTATION)
+    add_compile_definitions(AIRSHIP_INSTRUMENTATION)
+endif()
+
 set(AirshipCoreSources
     src/core/application.cpp
     src/core/event.cpp
     src/core/window.cpp
+    src/core/instrumentation.cpp
 )
 
 set(AirshipCoreHeaders
@@ -13,6 +20,7 @@ set(AirshipCoreHeaders
     include/core/convar.h
     include/core/event.h
     include/core/input.h
+    include/core/instrumentation.h
     include/core/logging.h
     include/core/utils.hpp
     include/core/window.h
