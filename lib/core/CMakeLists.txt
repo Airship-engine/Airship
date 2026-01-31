@@ -35,10 +35,7 @@ target_include_directories(AirshipCore
 )
 
 target_sources(AirshipCore PRIVATE ${AirshipCoreSources})
-target_sources(AirshipCore PUBLIC FILE_SET HEADERS
-    BASE_DIRS include/core
-    FILES ${AirshipCoreHeaders}
-)
+target_sources(AirshipCore PUBLIC ${AirshipCoreHeaders})
 source_group(TREE ${CMAKE_CURRENT_SOURCE_DIR}/src/core
     FILES
         ${AirshipCoreSources}

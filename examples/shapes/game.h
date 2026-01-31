@@ -3,8 +3,8 @@
 #include <vector>
 
 #include "core/application.h"
+#include "core/utils.hpp"
 #include "render/opengl/renderer.h"
-#include "utils.hpp"
 
 // clang-format off
 const char* const vertexShaderSource =

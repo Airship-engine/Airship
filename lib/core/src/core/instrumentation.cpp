@@ -1,4 +1,4 @@
-#include "instrumentation.h"
+#include "core/instrumentation.h"
 
 #ifndef AIRSHIP_INSTRUMENTATION
 namespace Airship::Profiling {

@@ -1,13 +1,14 @@
-#include "window.h"
+
+#include "core/window.h"
 
 #include <cassert>
 #include <string>
 
 #include "GLFW/glfw3.h"
+#include "core/input.h"
 #include "core/instrumentation.h"
-#include "input.h"
-#include "logging.h"
-#include "utils.hpp"
+#include "core/logging.h"
+#include "core/utils.hpp"
 
 // NOLINTNEXTLINE
 #define GLFW_CHECK()                                                                                                   \

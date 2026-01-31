@@ -4,9 +4,9 @@
 #include <vector>
 
 #include "addons.h"
-#include "color.h"
-#include "opengl/renderer.h"
-#include "utils.hpp"
+#include "core/utils.hpp"
+#include "render/color.h"
+#include "render/opengl/renderer.h"
 
 constexpr float TALLY_WIDTH = 0.015;
 constexpr float TALLY_GROUP_HMARGIN = 0.012;

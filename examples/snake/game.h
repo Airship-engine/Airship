@@ -3,16 +3,16 @@
 #include <memory>
 
 #include "addons.h"
-#include "color.h"
 #include "core/application.h"
+#include "core/input.h"
 #include "core/instrumentation.h"
+#include "core/logging.h"
+#include "core/window.h"
 #include "grid.h"
-#include "input.h"
-#include "logging.h"
-#include "opengl/renderer.h"
+#include "render/color.h"
+#include "render/opengl/renderer.h"
 #include "snake.h"
 #include "tallies.h"
-#include "window.h"
 
 constexpr float GRID_DIMS = 50;
 constexpr float GRID_PADDING = 0.1f;
