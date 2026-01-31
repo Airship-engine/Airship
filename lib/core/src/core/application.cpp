@@ -7,6 +7,7 @@
 #include <string>
 #include <utility>
 
+#include "core/instrumentation.h"
 #include "core/window.h"
 #include "input.h"
 #include "logging.h"
@@ -42,18 +43,24 @@ void Application::Run() {
     }
     OnStart();
     GameLoop();
+    Profiling::dump("temp_file");
 }
 
 void Application::GameLoop() {
+    PROFILE_FUNCTION();
     auto startTime = std::chrono::system_clock::now();
     while (!m_ShouldClose) {
+        PROFILE_SCOPE("frame");
         if (m_MainWindow) m_MainWindow->pollEvents();
         auto frameTime = std::chrono::system_clock::now() - startTime;
         startTime = std::chrono::system_clock::now();
         auto elapsed = std::chrono::duration<float>(frameTime).count();
         elapsed = std::min(elapsed, 0.1f); // Clamp to avoid large jumps
 
-        OnGameLoop(elapsed);
+        {
+            PROFILE_SCOPE("User game loop");
+            OnGameLoop(elapsed);
+        }
 
         // Show the rendered buffer
         if (m_MainWindow) {

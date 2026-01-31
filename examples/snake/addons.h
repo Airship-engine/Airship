@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "core/instrumentation.h"
 #include "opengl/renderer.h"
 
 inline float randomRange(float min, float max) {
@@ -98,6 +99,7 @@ public:
     }
 
     void draw(const Airship::Renderer& renderer, Airship::Pipeline* pipeline) {
+        PROFILE_FUNCTION();
         for (auto& it : m_Streams) {
             it.second->sync();
         }
