@@ -6,8 +6,8 @@ target_link_libraries(SnakeExample
 )
 
 target_sources(SnakeExample PUBLIC main.cpp game.cpp)
-target_sources(SnakeExample PUBLIC FILE_SET HEADERS
-    FILES game.h snake.h grid.h tallies.h
+target_sources(SnakeExample PUBLIC
+    game.h snake.h grid.h tallies.h
 )
 
 # Copy assets to the build tree
