@@ -7,10 +7,10 @@
 #include <string>
 #include <utility>
 
+#include "core/input.h"
 #include "core/instrumentation.h"
+#include "core/logging.h"
 #include "core/window.h"
-#include "input.h"
-#include "logging.h"
 #include "opengl/renderer.h"
 
 namespace Airship {

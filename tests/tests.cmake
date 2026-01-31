@@ -30,9 +30,8 @@ function(airship_test TARGET_NAME SOURCE_LIST)
                 "${SOURCE_LIST}"
                 ${PROJECT_SOURCE_DIR}/tests/src/test/common.cpp 
         )
-        target_sources(${TARGET_NAME} PUBLIC FILE_SET HEADERS
-            BASE_DIRS ${PROJECT_SOURCE_DIR}/tests/include/test
-            FILES ${PROJECT_SOURCE_DIR}/tests/include/test/common.h
+        target_sources(${TARGET_NAME} PUBLIC
+            ${PROJECT_SOURCE_DIR}/tests/include/test/common.h
         )
         source_group("" FILES ${SOURCE_LIST})
         source_group("Common" 
