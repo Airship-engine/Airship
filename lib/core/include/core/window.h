@@ -6,73 +6,44 @@
 #include <string>
 #include <utility>
 
-#include "logging.h"
+#include "input.h"
 #include "utils.hpp"
-
-// NOLINTNEXTLINE
-#define GLFW_CHECK(x)                                                                                                  \
-    /* NOLINTBEGIN(cppcoreguidelines-avoid-do-while) */                                                                \
-    do {                                                                                                               \
-        x;                                                                                                             \
-        const char* description;                                                                                       \
-        [[maybe_unused]]                                                                                               \
-        int code = glfwGetError(&description);                                                                         \
-        if (description) SHIPLOG_MAYDAY("glfw error {} -> {}", code, description);                                     \
-    } while (0) /* NOLINTEND(cppcoreguidelines-avoid-do-while) */
 
 namespace Airship {
 class Window {
     using resize_callback = std::function<void(int, int)>;
+    using keypress_callback = std::function<void(const Window&, Input::Key, int, Input::KeyAction, Input::KeyMods)>;
 
 public:
-    Window(int w, int h, const std::string& title, bool visible = true) {
-        // TODO: Change these hints when using Vulkan. These are set up for opengl specifically.
-        GLFW_CHECK(glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3));
-        GLFW_CHECK(glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3));
-        GLFW_CHECK(glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE));
+    static void Init();
+    static void Terminate();
+    Window(int w, int h, const std::string& title, bool visible = true);
+    ~Window();
 
-        GLFW_CHECK(glfwWindowHint(GLFW_VISIBLE, visible ? GLFW_TRUE : GLFW_FALSE));
-        GLFW_CHECK(m_Window = glfwCreateWindow(w, h, title.c_str(), nullptr, nullptr));
+    [[nodiscard]] Utils::Point<int, 2> GetSize() const;
 
-        // Should we allow background window creation? Not sure if that's a thing...
-        // OpenGL-specific, too
-        GLFW_CHECK(glfwMakeContextCurrent(m_Window));
-
-        // Handle resize callback - store this pointer to get the appropriate function pointer.
-        GLFW_CHECK(glfwSetWindowUserPointer(m_Window, this));
-        GLFW_CHECK(glfwSetFramebufferSizeCallback(m_Window, windowResizeCallback));
-    }
-
-    ~Window() {
-        if (m_Window != nullptr) GLFW_CHECK(glfwDestroyWindow(m_Window));
-    }
-
-    [[nodiscard]] Utils::Point<int, 2> GetSize() const {
-        int width, height;
-        GLFW_CHECK(glfwGetWindowSize(m_Window, &width, &height));
-
-        return Utils::Point<int, 2>(width, height);
-    }
-
+    // TODO: Remove this function to make GLFW a private dependency
     [[nodiscard]] GLFWwindow* Get() const { return m_Window; }
     void setWindowResizeCallback(resize_callback fn) { m_ResizeCallback = std::move(fn); };
+    void setKeyPressCallback(keypress_callback fn) { m_KeypressCallback = std::move(fn); };
 
-    void swapBuffers() const { glfwSwapBuffers(m_Window); }
+    void swapBuffers() const;
 
-    [[nodiscard]] bool shouldClose() const { return glfwWindowShouldClose(m_Window) != 0; }
+    [[nodiscard]] bool shouldClose() const;
 
-    void pollEvents() const { glfwPollEvents(); }
+    void pollEvents() const;
+    void handleResizeEvent(int width, int height) const {
+        if (m_ResizeCallback == nullptr) return;
+        m_ResizeCallback(width, height);
+    }
+    void handleKeyPress(Input::Key key, int scancode, Input::KeyAction action, Input::KeyMods mods) const {
+        if (m_KeypressCallback == nullptr) return;
+        m_KeypressCallback(*this, key, scancode, action, mods);
+    }
 
 private:
     GLFWwindow* m_Window;
     resize_callback m_ResizeCallback;
-
-    static void windowResizeCallback(GLFWwindow* window, int width, int height) {
-        const Window* win = nullptr;
-        GLFW_CHECK(win = static_cast<Window*>(glfwGetWindowUserPointer(window)));
-        if ((win != nullptr) && win->m_ResizeCallback) {
-            win->m_ResizeCallback(width, height);
-        }
-    }
+    keypress_callback m_KeypressCallback;
 };
 } // namespace Airship

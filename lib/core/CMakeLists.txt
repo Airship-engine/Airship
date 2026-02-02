@@ -1,16 +1,18 @@
 add_library(AirshipCore)
-target_link_libraries(AirshipCore PUBLIC spdlog glfw AirshipCommonFlags)
+target_link_libraries(AirshipCore PUBLIC spdlog glfw AirshipRenderer AirshipCommonFlags)
 enable_clang_tidy(AirshipCore)
 
 set(AirshipCoreSources
     src/core/application.cpp
     src/core/event.cpp
+    src/core/window.cpp
 )
 
 set(AirshipCoreHeaders
     include/core/application.h
     include/core/convar.h
     include/core/event.h
+    include/core/input.h
     include/core/logging.h
     include/core/utils.hpp
     include/core/window.h
