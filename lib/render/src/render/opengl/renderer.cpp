@@ -78,11 +78,13 @@ VertexFormatInfo getVertexFormatInfo(ShaderDataType format) {
 }
 
 VertexArray setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) {
+    PROFILE_FUNCTION();
     VertexArray vao;
     uint32_t nextBinding = 0;
     SHIPLOG_DEBUG("Setting up vertex input bindings - {} pipeline attributes", pipeline.getVertexAttributes().size());
 
     for (const auto& attr : pipeline.getVertexAttributes()) {
+        PROFILE_SCOPE("setup vertex attribute");
         const VertexAttributeStream* stream = mesh.getStream(attr.name);
         assert(stream && "Shader requires missing vertex attribute");
         assert(stream->format == attr.format);
@@ -132,6 +134,7 @@ constexpr GLenum toGL(ShaderType stype) {
 } // anonymous namespace
 
 void Mesh::draw() const {
+    PROFILE_FUNCTION();
     assert(m_VertexCount % 3 == 0);
     glDrawArrays(GL_TRIANGLES, 0, m_VertexCount);
     CHECK_GL_ERROR();
@@ -186,6 +189,7 @@ VertexArray::~VertexArray() {
 }
 
 void VertexArray::bind() const {
+    PROFILE_FUNCTION();
     glBindVertexArray(m_VertexArrayID);
     CHECK_GL_ERROR();
 }
