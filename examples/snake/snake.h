@@ -102,7 +102,7 @@ public:
         m_MeshData.setVertexCount(canonicalSquare.size());
     }
 
-    void draw(const Airship::Renderer& renderer, Airship::Pipeline* pipeline) { m_MeshData.draw(renderer, pipeline); }
+    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) { m_MeshData.draw(renderer, mat); }
     ivec2 pos() const { return m_GridPos; }
 
 private:
@@ -131,6 +131,7 @@ public:
     }
 
     void draw(const Airship::Renderer& renderer, Airship::Pipeline* pipeline) { m_MeshData.draw(renderer, pipeline); }
+    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) { m_MeshData.draw(renderer, mat); }
     ivec2 pos() const { return m_GridPos; }
     void SetPos(ivec2 gridPos) {
         m_GridPos = gridPos;
@@ -193,10 +194,10 @@ public:
     void SetDir(Direction dir) { m_MoveDir = dir; }
     [[nodiscard]] Direction GetDir() { return m_MoveDir; }
     void PopTail() { m_Cells.PopTail(); }
-    void draw(const Airship::Renderer& renderer, Airship::Pipeline* pipeline) {
+    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) {
         for (int i = static_cast<int>(m_Cells.GetCount()) - 1; i >= 0; --i) {
             auto& cell = m_Cells.GetElem(i);
-            cell.draw(renderer, pipeline);
+            cell.draw(renderer, mat);
         }
     }
 

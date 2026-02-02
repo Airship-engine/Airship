@@ -30,6 +30,7 @@ private:
     // inert constructors plus a factory method from the platform to create/validate.
     // Then we can remove these unique pointers.
     std::unique_ptr<Airship::Pipeline> m_TriPipeline, m_BGPipeline;
+    std::unique_ptr<Airship::Material> m_TriMaterial, m_BGMaterial;
     std::unique_ptr<Airship::Buffer> m_TriBuffer, m_BGBuffer, m_BGHuesBuffer;
     Airship::Mesh m_TriMesh, m_BGMesh;
 

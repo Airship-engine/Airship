@@ -98,12 +98,12 @@ public:
         return *ptr;
     }
 
-    void draw(const Airship::Renderer& renderer, Airship::Pipeline* pipeline) {
+    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) {
         PROFILE_FUNCTION();
         for (auto& it : m_Streams) {
             it.second->sync();
         }
-        renderer.draw(*this, *pipeline, false);
+        renderer.draw(*this, mat, false);
     }
 
 private:

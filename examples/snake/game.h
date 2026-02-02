@@ -40,16 +40,18 @@ private:
         PROFILE_FUNCTION();
         if (m_Renderer) {
             m_Renderer->clear();
-            m_BGMesh.draw(*m_Renderer, m_BGPipeline.get());
-            m_GridMesh.draw(*m_Renderer, m_Pipeline.get());
-            m_Snake.draw(*m_Renderer, m_Pipeline.get());
-            m_Apple->draw(*m_Renderer, m_Pipeline.get());
-            m_Tallies.draw(*m_Renderer, *m_Pipeline);
+            m_BGMesh.draw(*m_Renderer, *backgroundMaterial);
+            m_GridMesh.draw(*m_Renderer, *flatShadedMaterial);
+            m_Snake.draw(*m_Renderer, *flatShadedMaterial);
+            m_Apple->draw(*m_Renderer, *flatShadedMaterial);
+            m_Tallies.draw(*m_Renderer, *flatShadedMaterial);
         }
     }
     void CreatePipelines();
     std::unique_ptr<Airship::Pipeline> m_Pipeline;
+    std::unique_ptr<Airship::Material> flatShadedMaterial;
     std::unique_ptr<Airship::Pipeline> m_BGPipeline;
+    std::unique_ptr<Airship::Material> backgroundMaterial;
     float m_TickTime = std::numeric_limits<float>::max();
     Grid<2> m_Grid;
     std::unique_ptr<Apple> m_Apple;

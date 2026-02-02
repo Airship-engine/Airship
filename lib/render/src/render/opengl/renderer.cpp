@@ -2,6 +2,7 @@
 
 #include "render/opengl/renderer.h"
 
+#include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
@@ -9,7 +10,9 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <type_traits>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "GL/gl3w.h"
@@ -257,35 +260,6 @@ Shader::~Shader() {
     CHECK_GL_ERROR();
 }
 
-template <size_t N>
-void Uniform::SetFloatVector(int program, const std::string& name, const float* val, size_t count) {
-    GLint loc = glGetUniformLocation(program, name.c_str());
-    if (loc == -1) {
-        SHIPLOG_TRACE("Skipping setting {} - Not found in program.", name);
-        return;
-    }
-
-    SHIPLOG_TRACE("Setting uniform {} at location {} to {}", name, loc, *val);
-    int count_int = static_cast<int>(count);
-    if constexpr (N == 1) {
-        glUniform1fv(loc, count_int, val);
-    } else if constexpr (N == 2) {
-        glUniform2fv(loc, count_int, val);
-    } else if constexpr (N == 3) {
-        glUniform3fv(loc, count_int, val);
-    } else if constexpr (N == 4) {
-        glUniform4fv(loc, count_int, val);
-    } else {
-        static_assert(false, "Invalid number of unform compontnts.");
-    }
-}
-
-// Only vec1-vec4 allowed
-template void Uniform::SetFloatVector<1>(int program, const std::string& name, const float* val, size_t count);
-template void Uniform::SetFloatVector<2>(int program, const std::string& name, const float* val, size_t count);
-template void Uniform::SetFloatVector<3>(int program, const std::string& name, const float* val, size_t count);
-template void Uniform::SetFloatVector<4>(int program, const std::string& name, const float* val, size_t count);
-
 Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vector<VertexAttributeDesc>& attribs) :
     m_ProgramID(glCreateProgram()), m_VertexAttribs(attribs) {
     SHIPLOG_TRACE("Linking pipeline {}", m_ProgramID);
@@ -317,7 +291,16 @@ std::string Pipeline::getLinkLog() const {
     return ret;
 }
 
+int Pipeline::GetUniformLocation(const std::string& name) const {
+    int ret = glGetUniformLocation(m_ProgramID, name.c_str());
+    SHIPLOG_TRACE("Got uniform location for {} from program {}: {}", name, m_ProgramID, ret);
+    CHECK_GL_ERROR();
+    return ret;
+}
+
 void Pipeline::bind() const {
+    SHIPLOG_INFO("Binding program {}", m_ProgramID);
+    PROFILE_FUNCTION();
     assert(m_ProgramID != 0);
     glUseProgram(m_ProgramID);
     CHECK_GL_ERROR();
@@ -330,8 +313,31 @@ Pipeline::~Pipeline() {
     m_ProgramID = 0;
 }
 
-void Pipeline::bindUniforms() const {
-    if (m_SetUniformCallback) m_SetUniformCallback();
+void Material::Bind() const {
+    m_Pipeline->bind();
+    for (const auto& [name, uVariant] : m_Uniforms) {
+        if (!uVariant.dirty) continue;
+        int loc = m_Pipeline->GetUniformLocation(name);
+        if (loc < 0) continue; // Example: commented out, or optimized out
+
+        std::visit(
+            [&](auto&& val) {
+                using T = std::decay_t<decltype(val)>;
+
+                if constexpr (std::is_same_v<T, float>) {
+                    glUniform1fv(loc, 1, &val);
+                    // NOLINTNEXTLINE(bugprone-lambda-function-name)
+                    CHECK_GL_ERROR();
+                } else if constexpr (std::is_same_v<T, Color>) {
+                    std::array<float, 4> arrVal = {val.r, val.g, val.b, val.a};
+                    glUniform4fv(loc, 1, arrVal.data());
+                    // NOLINTNEXTLINE(bugprone-lambda-function-name)
+                    CHECK_GL_ERROR();
+                } else
+                    static_assert(false, "Invalid type");
+            },
+            uVariant.value);
+    }
 }
 
 void Renderer::clear() const {
@@ -340,20 +346,19 @@ void Renderer::clear() const {
     CHECK_GL_ERROR();
 }
 
-void Renderer::draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, bool doClear) const {
+void Renderer::draw(const std::vector<Mesh>& meshes, const Material& mat, bool doClear) const {
     if (doClear) clear();
     for (const auto& mesh : meshes)
-        draw(mesh, pipeline, false);
+        draw(mesh, mat, false);
 }
 
-void Renderer::draw(const Mesh& mesh, const Pipeline& pipeline, bool doClear) const {
+void Renderer::draw(const Mesh& mesh, const Material& mat, bool doClear) const {
     PROFILE_FUNCTION();
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
     if (doClear) clear();
+    mat.Bind();
     // TODO: Cache VAO per mesh/pipeline combo
-    VertexArray vao = setupVertexArrayBinding(mesh, pipeline);
-    pipeline.bind();
-    pipeline.bindUniforms();
+    VertexArray vao = setupVertexArrayBinding(mesh, mat.pipeline());
     vao.bind();
     mesh.draw();
 }
