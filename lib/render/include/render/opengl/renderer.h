@@ -9,7 +9,7 @@
 #include <utility>
 #include <vector>
 
-#include "logging.h"
+#include "core/logging.h"
 #include "render/color.h"
 
 namespace Airship {

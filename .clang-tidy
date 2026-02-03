@@ -14,10 +14,10 @@ Checks: >
   -cppcoreguidelines-non-private-member-variables-in-classes,
   -cppcoreguidelines-pro-type-union-access,
   -cppcoreguidelines-special-member-functions,
+  -cppcoreguidelines-macro-usage,
   misc-*,
   -misc-const-correctness,
   -misc-non-private-member-variables-in-classes,
-  # -misc-static-assert,
   modernize-*,
   -modernize-use-trailing-return-type,
   -modernize-return-braced-init-list,
@@ -37,5 +37,7 @@ CheckOptions:
   - key: readability-else-after-return.WarnOnConditionVariables
     value: true
   - key: readability-else-after-return.WarnOnUnfixable
+    value: true
+  - key: cppcoreguidelines-avoid-non-const-global-variables.AllowInternalLinkage
     value: true
 ...

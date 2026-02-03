@@ -6,13 +6,13 @@
 #include <vector>
 
 #include "addons.h"
-#include "color.h"
+#include "core/input.h"
+#include "core/logging.h"
+#include "core/window.h"
 #include "grid.h"
-#include "input.h"
-#include "logging.h"
-#include "opengl/renderer.h"
+#include "render/color.h"
+#include "render/opengl/renderer.h"
 #include "snake.h"
-#include "window.h"
 
 #define UNUSED(x) ((void) x)
 

@@ -4,10 +4,10 @@
 #include <string>
 #include <vector>
 
+#include "core/utils.hpp"
 #include "core/window.h"
 #include "gtest/gtest.h"
 #include "test/common.h"
-#include "utils.hpp"
 
 TEST(Renderer, Init) {
     // Use Application code to handle getting a window

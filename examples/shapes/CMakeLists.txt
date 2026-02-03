@@ -14,7 +14,5 @@ set(ShapesExampleHeaders
 )
 
 target_sources(ShapesExample PUBLIC ${ShapesExampleSources})
-target_sources(ShapesExample PUBLIC FILE_SET HEADERS
-    FILES ${ShapesExampleHeaders}
-)
+target_sources(ShapesExample PUBLIC ${ShapesExampleHeaders})
 

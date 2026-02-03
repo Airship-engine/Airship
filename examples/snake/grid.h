@@ -4,7 +4,7 @@
 #include <cstdlib>
 #include <functional>
 
-#include "utils.hpp"
+#include "core/utils.hpp"
 
 template <size_t N>
 using ivec = Airship::Utils::Point<int, N>;
