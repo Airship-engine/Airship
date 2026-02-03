@@ -27,7 +27,7 @@ jobs:
       with:
         submodules: 'true'
     - if: ${{ matrix.extra-packages }}
-      run: sudo apt install -y ${{ matrix.extra-packages }}
+      run: sudo apt update && sudo apt install -y ${{ matrix.extra-packages }}
     - name: Setup build directory
       run: mkdir build/
     - name: CMake Configure

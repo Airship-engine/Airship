@@ -34,7 +34,7 @@ protected:
         m_Pipeline = std::make_unique<Airship::Pipeline>(
             vertexShader, fragmentShader,
             std::vector<Airship::Pipeline::VertexAttributeDesc>{
-                {.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}});
+                {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}});
     }
     void OnStart() override {
 
@@ -65,12 +65,12 @@ protected:
         m_Meshes[0].setAttributeStream("Position", {.buffer = &m_Buffers[0],
                                                     .stride = sizeof(VertexType),
                                                     .offset = 0,
-                                                    .format = Airship::VertexFormat::Float3});
+                                                    .format = Airship::ShaderDataType::Float3});
         m_Meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
         m_Meshes[1].setAttributeStream("Position", {.buffer = &m_Buffers[1],
                                                     .stride = sizeof(VertexType),
                                                     .offset = 0,
-                                                    .format = Airship::VertexFormat::Float3});
+                                                    .format = Airship::ShaderDataType::Float3});
         m_Meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
     }
 

@@ -45,10 +45,11 @@ TEST(Renderer, Init) {
     EXPECT_NO_THROW(Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource));
     Airship::Shader fragmentShader(Airship::ShaderType::Fragment, fragmentShaderSource);
 
-    EXPECT_NO_THROW(Airship::Pipeline pipeline(
-        vertexShader, fragmentShader, {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}}));
+    EXPECT_NO_THROW(
+        Airship::Pipeline pipeline(vertexShader, fragmentShader,
+                                   {{.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}}));
     Airship::Pipeline pipeline(vertexShader, fragmentShader,
-                               {{.name = "Position", .location = 0, .format = Airship::VertexFormat::Float3}});
+                               {{.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}});
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
@@ -74,12 +75,12 @@ TEST(Renderer, Init) {
     meshes[0].setAttributeStream("Position", {.buffer = &verticesABuffer,
                                               .stride = sizeof(VertexType),
                                               .offset = 0,
-                                              .format = Airship::VertexFormat::Float3});
+                                              .format = Airship::ShaderDataType::Float3});
     meshes[0].setVertexCount(static_cast<int>(verticesA.size()));
     meshes[1].setAttributeStream("Position", {.buffer = &verticesBBuffer,
                                               .stride = sizeof(VertexType),
                                               .offset = 0,
-                                              .format = Airship::VertexFormat::Float3});
+                                              .format = Airship::ShaderDataType::Float3});
     meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
     auto* renderer = app.GetRenderer();
