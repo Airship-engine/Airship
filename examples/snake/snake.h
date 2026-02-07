@@ -22,16 +22,16 @@ template <typename T>
 class RingBuffer {
 public:
     RingBuffer(size_t capacity) : head(capacity - 1), m_Capacity(capacity) { m_Data.resize(capacity); }
-    void PushHead(T&& elem) {
+    T& PushHead() {
         assert(count < m_Capacity);
         count++;
         head = (head - 1) % m_Capacity;
-        SetElem(0, std::move(elem));
+        return GetElem(0);
     };
-    void PushTail(T&& elem) {
+    T& PushTail() {
         assert(count < m_Capacity);
         count++;
-        SetElem(count - 1, std::move(elem));
+        return GetElem(count - 1);
     };
     void PopTail() {
         assert(count > 0);
@@ -81,7 +81,10 @@ inline std::array<ivec2, 6> CreateSquare(ivec2 pos) {
 class SnakeCell {
 public:
     SnakeCell() = default; // uninitialized Streams
-    SnakeCell(ivec2 pos, const Grid<2>* grid) : m_GridPos(pos), m_Grid(grid) {
+    void Initialize(ivec2 pos, const Grid<2>* grid) {
+        m_Grid = grid;
+        m_GridPos = pos;
+
         m_MeshData.addStream<vec2>("Position", Airship::ShaderDataType::Float2);
         m_MeshData.addStream<Airship::Color>("Color", Airship::ShaderDataType::Float4);
 
@@ -100,12 +103,17 @@ public:
         colorStream.data() = colors;
         colorStream.invalidate();
         m_MeshData.setVertexCount(canonicalSquare.size());
+        initialized = true;
     }
 
-    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) { m_MeshData.draw(renderer, mat); }
+    void draw(const Airship::Renderer& renderer, const Airship::Material& mat) {
+        assert(initialized);
+        m_MeshData.draw(renderer, mat);
+    }
     ivec2 pos() const { return m_GridPos; }
 
 private:
+    bool initialized = false;
     ivec2 m_GridPos = ivec2(0, 0);
     const Grid<2>* m_Grid = nullptr;
     DynamicMesh m_MeshData;
@@ -184,11 +192,13 @@ public:
     Snake(const Grid<2>* grid) : m_Grid(grid), m_Cells(256) {}
     void Initialize(ivec<2> location) {
         assert(m_Cells.GetCount() == 0);
-        m_Cells.PushHead(SnakeCell(location, m_Grid));
+        auto& newHead = m_Cells.PushHead();
+        newHead.Initialize(location, m_Grid);
     }
     void Grow() {
         const auto& tailCell = m_Cells.GetElem(m_Cells.GetCount() - 1);
-        m_Cells.PushTail(SnakeCell(tailCell.pos(), m_Grid));
+        auto& newTail = m_Cells.PushTail();
+        newTail.Initialize(tailCell.pos(), m_Grid);
     }
     [[nodiscard]] ivec2 HeadPos() const { return m_Cells.GetElem(0).pos(); }
     void SetDir(Direction dir) { m_MoveDir = dir; }
@@ -221,7 +231,8 @@ public:
         if (nextPos != applePos) {
             PopTail();
         }
-        m_Cells.PushHead(SnakeCell(nextPos, m_Grid));
+        auto& newHead = m_Cells.PushHead();
+        newHead.Initialize(nextPos, m_Grid);
     }
 
     [[nodiscard]] bool IsAlive() const { return m_IsAlive; }
