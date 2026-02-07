@@ -167,15 +167,22 @@ void Buffer::bind() const {
     CHECK_GL_ERROR();
 }
 
-void Buffer::update(size_t bytes, const void* data) const {
+void Buffer::update(size_t bytes, const void* data) {
     // GL_STATIC_DRAW: Set data once, used many times.
     // TODO: Implement switching to GL_STREAM_DRAW or GL_DYNAMIC_DRAW
     SHIPLOG_TRACE("Updating buffer {} with {} bytes of data", m_BufferID, bytes);
     if (!glIsBuffer(m_BufferID)) {
         SHIPLOG_ERROR("Attempting to update invalid buffer {}", m_BufferID);
     };
+    if (bytes > m_Size) {
+        // Expand the buffer to fit the data
     glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
     CHECK_GL_ERROR();
+        m_Size = bytes;
+    } else {
+        glNamedBufferSubData(m_BufferID, 0, static_cast<GLsizeiptr>(bytes), data);
+        CHECK_GL_ERROR();
+}
 }
 
 VertexArray::VertexArray() {

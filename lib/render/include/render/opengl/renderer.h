@@ -25,10 +25,11 @@ struct Buffer {
     ~Buffer();
     [[nodiscard]] buffer_id get() const { return m_BufferID; }
     void bind() const;
-    void update(size_t bytes, const void* data) const;
+    void update(size_t bytes, const void* data);
 
 private:
     buffer_id m_BufferID;
+    size_t m_Size = 0;
 };
 
 enum class ShaderDataType : uint8_t {
