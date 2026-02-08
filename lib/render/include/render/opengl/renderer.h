@@ -103,9 +103,9 @@ struct UniformTraits<Color> {
 };
 
 class Pipeline {
+public:
     using program_id = unsigned int;
 
-public:
     // Abstraction on per-vertex shader variables, e.g.
     // layout (location = 0) in vec3 aPos
     struct VertexAttributeDesc {
@@ -129,6 +129,7 @@ public:
     void bind() const;
     [[nodiscard]] const std::vector<VertexAttributeDesc>& getVertexAttributes() const { return m_VertexAttribs; }
     [[nodiscard]] int GetUniformLocation(const std::string& name) const;
+    [[nodiscard]] program_id get() const { return m_ProgramID; }
 
 private:
     [[nodiscard]] std::string getLinkLog() const;

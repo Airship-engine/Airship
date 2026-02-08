@@ -2,15 +2,18 @@
 
 #include "render/opengl/renderer.h"
 
+#include <algorithm>
 #include <array>
 #include <cassert>
 #include <cstddef>
 #include <cstdint>
 #include <cstdlib>
 #include <fstream>
+#include <functional>
 #include <sstream>
 #include <string>
 #include <type_traits>
+#include <unordered_map>
 #include <utility>
 #include <variant>
 #include <vector>
@@ -19,6 +22,7 @@
 #include "GL/glcorearb.h"
 #include "core/instrumentation.h"
 #include "core/logging.h"
+#include "core/utils.hpp"
 #include "render/color.h"
 
 namespace Airship {
@@ -80,45 +84,107 @@ VertexFormatInfo getVertexFormatInfo(ShaderDataType format) {
     return {};
 }
 
-VertexArray setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) {
+struct VertexArrayBinding {
+    Buffer::buffer_id buffer;
+    uint32_t binding;
+    uint32_t location;
+    uint32_t stride;
+    uint32_t offset;
+    ShaderDataType format;
+    bool operator==(const VertexArrayBinding&) const = default;
+};
+
+struct VertexArrayBindingHasher {
+    size_t operator()(const VertexArrayBinding& binding) const {
+        using Airship::Utils::hash_combine;
+        size_t seed = std::hash<Buffer::buffer_id>()(binding.buffer);
+        seed = hash_combine(seed, std::hash<uint32_t>()(binding.binding));
+        seed = hash_combine(seed, std::hash<uint32_t>()(binding.location));
+        seed = hash_combine(seed, std::hash<uint32_t>()(binding.stride));
+        seed = hash_combine(seed, std::hash<uint32_t>()(binding.offset));
+        seed = hash_combine(seed, std::hash<uint8_t>()(static_cast<uint8_t>(binding.format)));
+        return seed;
+    }
+};
+
+struct VAOKey {
+    VAOKey(const Pipeline& pipeline) : program(pipeline.get()) {}
+    Pipeline::program_id program;
+    std::vector<VertexArrayBinding> bindings;
+    bool operator==(const VAOKey&) const = default;
+};
+
+struct VAOKeyHasher {
+    size_t operator()(const VAOKey& key) const {
+        size_t seed = std::hash<Pipeline::program_id>()(key.program);
+        auto bindingHasher = VertexArrayBindingHasher();
+        for (const auto& binding : key.bindings) {
+            seed = Airship::Utils::hash_combine(seed, bindingHasher(binding));
+        }
+        return seed;
+    }
+};
+
+std::unordered_map<VAOKey, VertexArray, VAOKeyHasher>& VAOCache() {
+    static std::unordered_map<VAOKey, VertexArray, VAOKeyHasher> g_VAOCache;
+    return g_VAOCache;
+}
+
+VertexArray& setupVertexArrayBinding(const Mesh& mesh, const Pipeline& pipeline) {
     PROFILE_FUNCTION();
-    VertexArray vao;
-    uint32_t nextBinding = 0;
     SHIPLOG_DEBUG("Setting up vertex input bindings - {} pipeline attributes", pipeline.getVertexAttributes().size());
 
+    VAOKey key(pipeline);
+    key.bindings.reserve(pipeline.getVertexAttributes().size());
     for (const auto& attr : pipeline.getVertexAttributes()) {
-        PROFILE_SCOPE("setup vertex attribute");
+        PROFILE_SCOPE("Create VAO key");
+        VertexArrayBinding& binding = key.bindings.emplace_back();
         const VertexAttributeStream* stream = mesh.getStream(attr.name);
         assert(stream && "Shader requires missing vertex attribute");
         assert(stream->format == attr.format);
 
-        uint32_t binding = nextBinding++;
-        SHIPLOG_DEBUG("Binding attribute '{}' to binding {}", attr.name, binding);
-        SHIPLOG_DEBUG(" - buffer ID: {}", stream->buffer->get());
-        SHIPLOG_DEBUG(" - stride: {}", stream->stride);
-        SHIPLOG_DEBUG(" - offset: {}", stream->offset);
+        binding.buffer = stream->buffer->get();
+        binding.binding = attr.location; // Assumed simple 1-1 mapping
+        binding.stride = stream->stride;
+        binding.offset = stream->offset;
+        SHIPLOG_DEBUG("Binding attribute '{}':", attr.name);
+        SHIPLOG_DEBUG(" - buffer ID: {}", binding.buffer);
+        SHIPLOG_DEBUG(" - stride: {}", binding.stride);
+        SHIPLOG_DEBUG(" - offset: {}", binding.offset);
 
-        glVertexArrayVertexBuffer(vao.id(), binding, stream->buffer->get(), stream->offset,
-                                  static_cast<GLsizei>(stream->stride));
-        CHECK_GL_ERROR();
+        binding.location = attr.location;
 
-        glEnableVertexArrayAttrib(vao.id(), attr.location);
-        CHECK_GL_ERROR();
-
-        auto info = getVertexFormatInfo(attr.format);
-        SHIPLOG_DEBUG(" - location: {}", attr.location);
+        binding.format = attr.format;
+        [[maybe_unused]] auto info = getVertexFormatInfo(binding.format);
         SHIPLOG_DEBUG(" - components: {}", info.components);
         SHIPLOG_DEBUG(" - type: {}", info.type);
         SHIPLOG_DEBUG(" - normalized: {}", info.normalized);
-        glVertexArrayAttribFormat(vao.id(), attr.location, info.components, info.type, info.normalized, 0);
+
+        SHIPLOG_DEBUG(" - location: {}", binding.location);
+        SHIPLOG_DEBUG(" - binding: {}", binding.binding);
+    }
+    if (VAOCache().contains(key)) {
+        auto& ret = VAOCache().at(key);
+        SHIPLOG_DEBUG("Reusing cached VAO, with ID {}", ret.id());
+        return ret;
+    }
+
+    VertexArray& vao = VAOCache()[key];
+    for (const auto& binding : key.bindings) {
+        PROFILE_SCOPE("Create VAO object");
+        glVertexArrayVertexBuffer(vao.id(), binding.binding, binding.buffer, binding.offset,
+                                  static_cast<GLsizei>(binding.stride));
         CHECK_GL_ERROR();
 
-        glVertexArrayAttribBinding(vao.id(), attr.location, binding);
+        glEnableVertexArrayAttrib(vao.id(), binding.location);
         CHECK_GL_ERROR();
-        GLint size = 0;
-        glGetNamedBufferParameteriv(stream->buffer->get(), GL_BUFFER_SIZE, &size);
+
+        auto info = getVertexFormatInfo(binding.format);
+        glVertexArrayAttribFormat(vao.id(), binding.location, info.components, info.type, info.normalized, 0);
         CHECK_GL_ERROR();
-        SHIPLOG_DEBUG("Buffer {} has size: {}", stream->buffer->get(), size);
+
+        glVertexArrayAttribBinding(vao.id(), binding.location, binding.binding);
+        CHECK_GL_ERROR();
     }
     return vao;
 }
@@ -156,6 +222,17 @@ Buffer::Buffer(Buffer&& other) noexcept : m_BufferID(other.m_BufferID) {
 }
 
 Buffer::~Buffer() {
+    // Remove any VAOs based on this buffer
+    std::erase_if(VAOCache(), [this](const auto& item) {
+        const VAOKey& key = item.first;
+        [[maybe_unused]] const VertexArray& vao = item.second;
+        return std::ranges::any_of(key.bindings, [&](const auto& binding) {
+            bool ret = binding.buffer == m_BufferID;
+            // NOLINTNEXTLINE(bugprone-lambda-function-name)
+            if (ret) SHIPLOG_DEBUG("Invalidating VAO {} due to buffer deletion", vao.id());
+            return ret;
+        });
+    });
     SHIPLOG_TRACE("Deleting buffer with ID {}", m_BufferID);
     glDeleteBuffers(1, &m_BufferID);
     CHECK_GL_ERROR();
@@ -176,13 +253,13 @@ void Buffer::update(size_t bytes, const void* data) {
     };
     if (bytes > m_Size) {
         // Expand the buffer to fit the data
-    glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
-    CHECK_GL_ERROR();
+        glNamedBufferData(m_BufferID, static_cast<GLsizeiptr>(bytes), data, GL_STATIC_DRAW);
+        CHECK_GL_ERROR();
         m_Size = bytes;
     } else {
         glNamedBufferSubData(m_BufferID, 0, static_cast<GLsizeiptr>(bytes), data);
         CHECK_GL_ERROR();
-}
+    }
 }
 
 VertexArray::VertexArray() {
@@ -314,6 +391,14 @@ void Pipeline::bind() const {
 }
 
 Pipeline::~Pipeline() {
+    // Remove any VAOs based on this program
+    std::erase_if(VAOCache(), [this](const auto& item) {
+        auto& [key, vao] = item;
+        bool doDelete = key.program == m_ProgramID;
+        // NOLINTNEXTLINE(bugprone-lambda-function-name)
+        if (doDelete) SHIPLOG_DEBUG("Invalidating VAO {} due to Pipeline deletion", vao.id());
+        return doDelete;
+    });
     SHIPLOG_TRACE("Deleting pipeline {}", m_ProgramID);
     glDeleteProgram(m_ProgramID);
     CHECK_GL_ERROR();
@@ -364,8 +449,7 @@ void Renderer::draw(const Mesh& mesh, const Material& mat, bool doClear) const {
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
     if (doClear) clear();
     mat.Bind();
-    // TODO: Cache VAO per mesh/pipeline combo
-    VertexArray vao = setupVertexArrayBinding(mesh, mat.pipeline());
+    VertexArray& vao = setupVertexArrayBinding(mesh, mat.pipeline());
     vao.bind();
     mesh.draw();
 }

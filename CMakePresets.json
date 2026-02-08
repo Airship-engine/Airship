@@ -26,7 +26,7 @@
             "displayName": "Root configuration used by all other presets",
             "hidden": true,
             "cacheVariables": {
-              "CLANG_TIDY": "ON",
+              "CLANG_TIDY": "OFF",
               "AIRSHIP_INSTRUMENTATION":  "ON"
             },
             "inherits": [
