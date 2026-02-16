@@ -285,6 +285,8 @@ VertexArray::VertexArray(VertexArray&& other) noexcept : m_VertexArrayID(other.m
     other.m_VertexArrayID = GL_INVALID_VALUE;
 }
 
+// Requires an active OpenGL context, so we can't do this in the constructor. Instead, call this from the
+// application after creating the window -- even in headless mode, as we may to do offscreen rendering.
 void Renderer::init() {
     if (gl3wInit() != 0) {
         SHIPLOG_MAYDAY("Unable to initialize gl3w");

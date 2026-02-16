@@ -176,11 +176,9 @@ void Game::OnGameLoop(float elapsed) {
     std::chrono::duration<float> duration = cur_time - start_time;
     backgroundMaterial->SetUniform("iTime", duration.count());
     if (!m_Snake.IsAlive()) {
-        if (m_Renderer) {
-            constexpr Airship::Color deathColor = {0.2f, 0.0f, 0.0f};
-            m_BladeTipColor = Airship::Color::lerp(m_BladeTipColor, deathColor, 0.05f);
-            backgroundMaterial->SetUniform("iTip", m_BladeTipColor);
-        }
+        constexpr Airship::Color deathColor = {0.2f, 0.0f, 0.0f};
+        m_BladeTipColor = Airship::Color::lerp(m_BladeTipColor, deathColor, 0.05f);
+        backgroundMaterial->SetUniform("iTip", m_BladeTipColor);
         draw();
         return;
     }

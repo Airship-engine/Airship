@@ -38,14 +38,12 @@ public:
 private:
     void draw() {
         PROFILE_FUNCTION();
-        if (m_Renderer) {
-            m_Renderer->clear();
-            m_BGMesh.draw(*m_Renderer, *backgroundMaterial);
-            m_GridMesh.draw(*m_Renderer, *flatShadedMaterial);
-            m_Snake.draw(*m_Renderer, *flatShadedMaterial);
-            m_Apple->draw(*m_Renderer, *flatShadedMaterial);
-            m_Tallies.draw(*m_Renderer, *flatShadedMaterial);
-        }
+        m_Renderer.clear();
+        m_BGMesh.draw(m_Renderer, *backgroundMaterial);
+        m_GridMesh.draw(m_Renderer, *flatShadedMaterial);
+        m_Snake.draw(m_Renderer, *flatShadedMaterial);
+        m_Apple->draw(m_Renderer, *flatShadedMaterial);
+        m_Tallies.draw(m_Renderer, *flatShadedMaterial);
     }
     void CreatePipelines();
     std::unique_ptr<Airship::Pipeline> m_Pipeline;

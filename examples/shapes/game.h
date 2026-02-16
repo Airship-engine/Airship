@@ -78,7 +78,7 @@ protected:
     void OnGameLoop(float /*elapsed*/) override {
         // Draw code
         m_Pipeline->bind();
-        m_Renderer->draw(m_Meshes, *m_Material);
+        m_Renderer.draw(m_Meshes, *m_Material);
     }
 
     std::vector<Airship::Buffer> m_Buffers;

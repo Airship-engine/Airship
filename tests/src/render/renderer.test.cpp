@@ -84,8 +84,7 @@ TEST(Renderer, Init) {
                                               .format = Airship::ShaderDataType::Float3});
     meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
-    auto* renderer = app.GetRenderer();
-    ASSERT_NE(renderer, nullptr);
+    const auto& renderer = app.GetRenderer();
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {
@@ -93,7 +92,7 @@ TEST(Renderer, Init) {
 
         // Draw code
         pipeline.bind();
-        renderer->draw(meshes, material);
+        renderer.draw(meshes, material);
 
         // Show the rendered buffer
         window->swapBuffers();

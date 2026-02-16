@@ -262,8 +262,8 @@ void Game::OnGameLoop(float elapsed) {
 
     // Draw code
     m_BGPipeline->bind();
-    m_Renderer->draw(m_BGMesh, *m_BGMaterial);
+    m_Renderer.draw(m_BGMesh, *m_BGMaterial);
 
     m_TriPipeline->bind();
-    m_Renderer->draw(m_TriMesh, *m_TriMaterial, false);
+    m_Renderer.draw(m_TriMesh, *m_TriMaterial, false);
 }
