@@ -50,6 +50,7 @@ TEST(Renderer, Init) {
                                    {{.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}}));
     Airship::Pipeline pipeline(vertexShader, fragmentShader,
                                {{.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}});
+    Airship::Material material(&pipeline);
 
     // Normalized device coordinates (NDC)
     // (-1,-1) lower-left corner, (1,1) upper-right
@@ -83,8 +84,7 @@ TEST(Renderer, Init) {
                                               .format = Airship::ShaderDataType::Float3});
     meshes[1].setVertexCount(static_cast<int>(verticesB.size()));
 
-    auto* renderer = app.GetRenderer();
-    ASSERT_NE(renderer, nullptr);
+    const auto& renderer = app.GetRenderer();
 
     // TODO: Pull into application?
     while (!window->shouldClose()) {
@@ -92,7 +92,7 @@ TEST(Renderer, Init) {
 
         // Draw code
         pipeline.bind();
-        renderer->draw(meshes, pipeline);
+        renderer.draw(meshes, material);
 
         // Show the rendered buffer
         window->swapBuffers();

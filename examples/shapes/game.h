@@ -35,6 +35,7 @@ protected:
             vertexShader, fragmentShader,
             std::vector<Airship::Pipeline::VertexAttributeDesc>{
                 {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3}});
+        m_Material = std::make_unique<Airship::Material>(m_Pipeline.get());
     }
     void OnStart() override {
 
@@ -77,10 +78,11 @@ protected:
     void OnGameLoop(float /*elapsed*/) override {
         // Draw code
         m_Pipeline->bind();
-        m_Renderer->draw(m_Meshes, *m_Pipeline);
+        m_Renderer.draw(m_Meshes, *m_Material);
     }
 
     std::vector<Airship::Buffer> m_Buffers;
     std::vector<Airship::Mesh> m_Meshes;
     std::unique_ptr<Airship::Pipeline> m_Pipeline;
+    std::unique_ptr<Airship::Material> m_Material;
 };

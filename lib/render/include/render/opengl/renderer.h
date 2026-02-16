@@ -5,8 +5,10 @@
 #include <cstdint>
 #include <functional>
 #include <string>
+#include <type_traits>
 #include <unordered_map>
 #include <utility>
+#include <variant>
 #include <vector>
 
 #include "core/logging.h"
@@ -23,10 +25,11 @@ struct Buffer {
     ~Buffer();
     [[nodiscard]] buffer_id get() const { return m_BufferID; }
     void bind() const;
-    void update(size_t bytes, const void* data) const;
+    void update(size_t bytes, const void* data);
 
 private:
     buffer_id m_BufferID;
+    size_t m_Size = 0;
 };
 
 enum class ShaderDataType : uint8_t {
@@ -83,41 +86,26 @@ private:
     shader_id m_ShaderID;
 };
 
-class Uniform {
-public:
-    Uniform(ShaderDataType format) : m_Format(format) {}
-    virtual ~Uniform() = default;
-
-    template <size_t N>
-    static void SetFloatVector(int program, const std::string& name, const float* val, size_t count = 1);
-
-protected:
-    ShaderDataType m_Format;
-};
-
 // Can be extended by the user to set uniforms from user-defined classes
 template <typename T>
 struct UniformTraits {};
 
 template <>
 struct UniformTraits<float> {
-    static void Set(int program, const std::string& name, float val) {
-        Uniform::SetFloatVector<1>(program, name, &val);
-    }
+    using UniformType = float;
+    static UniformType Convert(const float& val) { return val; }
 };
 
 template <>
 struct UniformTraits<Color> {
-    static void Set(int program, const std::string& name, const Color& val) {
-        std::array<float, 4> vals = {val.r, val.g, val.b, val.a};
-        Uniform::SetFloatVector<4>(program, name, vals.data());
-    }
+    using UniformType = Color;
+    static UniformType Convert(const Color& val) { return val; }
 };
-class Pipeline {
-    using program_id = unsigned int;
-    using set_uniform_callback = std::function<void()>;
 
+class Pipeline {
 public:
+    using program_id = unsigned int;
+
     // Abstraction on per-vertex shader variables, e.g.
     // layout (location = 0) in vec3 aPos
     struct VertexAttributeDesc {
@@ -140,20 +128,58 @@ public:
     ~Pipeline();
     void bind() const;
     [[nodiscard]] const std::vector<VertexAttributeDesc>& getVertexAttributes() const { return m_VertexAttribs; }
-
-    template <typename T>
-    void setUniform(const std::string& name, const T& val) {
-        UniformTraits<T>::Set(m_ProgramID, name, val);
-    }
-
-    void bindUniforms() const;
-    void setUniformsCallback(set_uniform_callback callback) { m_SetUniformCallback = std::move(callback); }
+    [[nodiscard]] int GetUniformLocation(const std::string& name) const;
+    [[nodiscard]] program_id get() const { return m_ProgramID; }
 
 private:
     [[nodiscard]] std::string getLinkLog() const;
     program_id m_ProgramID = 0;
     std::vector<VertexAttributeDesc> m_VertexAttribs;
-    set_uniform_callback m_SetUniformCallback;
+};
+
+using UniformVariant = std::variant<float, Color>;
+
+template <typename T>
+inline ShaderDataType DeduceShaderType() {
+    if constexpr (std::is_same_v<T, float>) return ShaderDataType::Float;
+    if constexpr (std::is_same_v<T, Color>) return ShaderDataType::Float4;
+}
+
+struct UniformValue {
+    ShaderDataType type;
+    UniformVariant value;
+    bool dirty;
+};
+
+template <typename T>
+concept UniformCompatible = requires(const T& v) {
+    typename UniformTraits<T>::UniformType;
+    { UniformTraits<T>::Convert(v) };
+};
+
+class Material {
+public:
+    Material(const Pipeline* pipeline) : m_Pipeline(pipeline) {}
+
+    template <UniformCompatible T>
+    void SetUniform(const std::string& name, const T& value) {
+        using Traits = UniformTraits<T>;
+        using UType = typename Traits::UniformType;
+
+        UType converted = Traits::Convert(value);
+
+        auto& u = m_Uniforms[name];
+        u.type = DeduceShaderType<UType>();
+        u.value = converted;
+        u.dirty = true;
+    }
+
+    void Bind() const;
+    [[nodiscard]] const Pipeline& pipeline() const { return *m_Pipeline; }
+
+private:
+    const Pipeline* m_Pipeline;
+    std::unordered_map<std::string, UniformValue> m_Uniforms;
 };
 
 class Renderer {
@@ -163,11 +189,12 @@ public:
     void resize(int width, int height) const;
 
     void clear() const;
-    void draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, bool doClear = true) const;
-    void draw(const Mesh& meshes, const Pipeline& pipeline, bool doClear = true) const;
+    void draw(const std::vector<Mesh>& meshes, const Material& mat, bool doClear = true) const;
+    void draw(const Mesh& mesh, const Material& mat, bool doClear = true) const;
     void setClearColor(const RGBColor& color);
 
 private:
     Color m_ClearColor = Colors::Magenta;
 };
+
 } // namespace Airship

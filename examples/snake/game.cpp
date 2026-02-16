@@ -52,23 +52,14 @@ void Game::CreatePipelines() {
                                                          {"Position", 0, Airship::ShaderDataType::Float2},
                                                          {"Color", 1, Airship::ShaderDataType::Float4},
                                                      });
+    flatShadedMaterial = std::make_unique<Airship::Material>(m_Pipeline.get());
     // BG coloring pipeline - stored in text files
     auto bgVertShader = Airship::Shader::from_file(Airship::ShaderType::Vertex, "assets/grass.vert");
     auto bgFragShader = Airship::Shader::from_file(Airship::ShaderType::Fragment, "assets/grass.frag");
     m_BGPipeline = std::make_unique<Airship::Pipeline>(
         bgVertShader, bgFragShader,
         std::vector<Airship::Pipeline::VertexAttributeDesc>{{"Position", 0, Airship::ShaderDataType::Float2}});
-    m_BGPipeline->setUniformsCallback([&]() {
-        static const auto start_time = std::chrono::steady_clock::now();
-        const auto cur_time = std::chrono::steady_clock::now();
-        std::chrono::duration<float> duration = cur_time - start_time;
-        m_BGPipeline->setUniform("iTime", duration.count());
-        m_BGPipeline->setUniform("iTip", m_BladeTipColor);
-        if (m_Snake.IsAlive())
-            m_BGPipeline->setUniform("iMaxTipDeviation", 1.0f);
-        else
-            m_BGPipeline->setUniform("iMaxTipDeviation", 0.0f);
-    });
+    backgroundMaterial = std::make_unique<Airship::Material>(m_BGPipeline.get());
 }
 
 void Game::OnKeyPress(const Airship::Window& window, Airship::Input::Key key, int scancode,
@@ -174,14 +165,20 @@ void Game::OnStart() {
     applePos.x() = static_cast<int>(randomRange(0, static_cast<float>(m_Grid.GetBounds().x())));
     applePos.y() = static_cast<int>(randomRange(0, static_cast<float>(m_Grid.GetBounds().y())));
     m_Apple = std::make_unique<Apple>(applePos, &m_Grid, Airship::Colors::Red);
+
+    backgroundMaterial->SetUniform("iTip", m_BladeTipColor);
+    backgroundMaterial->SetUniform("iMaxTipDeviation", 1.0f);
 }
 
 void Game::OnGameLoop(float elapsed) {
+    static const auto start_time = std::chrono::steady_clock::now();
+    const auto cur_time = std::chrono::steady_clock::now();
+    std::chrono::duration<float> duration = cur_time - start_time;
+    backgroundMaterial->SetUniform("iTime", duration.count());
     if (!m_Snake.IsAlive()) {
-        if (m_Renderer) {
-            constexpr Airship::Color deathColor = {0.2f, 0.0f, 0.0f};
-            m_BladeTipColor = Airship::Color::lerp(m_BladeTipColor, deathColor, 0.05f);
-        }
+        constexpr Airship::Color deathColor = {0.2f, 0.0f, 0.0f};
+        m_BladeTipColor = Airship::Color::lerp(m_BladeTipColor, deathColor, 0.05f);
+        backgroundMaterial->SetUniform("iTip", m_BladeTipColor);
         draw();
         return;
     }
@@ -193,6 +190,9 @@ void Game::OnGameLoop(float elapsed) {
     m_TickTime = 0;
     SHIPLOG_DEBUG("Loop");
     m_Snake.Update(m_Apple->pos());
+    if (!m_Snake.IsAlive()) {
+        backgroundMaterial->SetUniform("iMaxTipDeviation", 0.0f);
+    }
     if (m_Snake.HeadPos() == m_Apple->pos()) {
         ivec2 applePos;
         applePos.x() = static_cast<int>(randomRange(0, static_cast<float>(m_Grid.GetBounds().x())));

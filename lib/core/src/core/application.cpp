@@ -23,12 +23,12 @@ Application::Application(int width, int height, std::string title) :
     m_Width(width), m_Height(height), m_Title(std::move(title)) {}
 
 void Application::Run() {
+    Window::Init();
+    if (m_Width < 0 || m_Height < 0) SHIPLOG_ERROR("Creating a window with negative dimensions");
+    m_MainWindow = std::make_unique<Window>(m_Width, m_Height, m_Title, !m_ServerMode);
     if (!m_ServerMode) {
-        Window::Init();
-        if (m_Width < 0 || m_Height < 0) SHIPLOG_ERROR("Creating a window with negative dimensions");
-        m_MainWindow = std::make_unique<Window>(m_Width, m_Height, m_Title, true);
         m_MainWindow->setWindowResizeCallback([this](int width, int height) {
-            m_Renderer->resize(width, height);
+            m_Renderer.resize(width, height);
             m_Height = height;
             m_Width = width;
         });
@@ -36,11 +36,10 @@ void Application::Run() {
             [this](const Window& window, Input::Key key, int scancode, Input::KeyAction action, Input::KeyMods mods) {
                 OnKeyPress(window, key, scancode, action, mods);
             });
-
-        m_Renderer = std::make_unique<Renderer>();
-        m_Renderer->init();
-        m_Renderer->resize(m_Width, m_Height);
     }
+
+    m_Renderer.init();
+    m_Renderer.resize(m_Width, m_Height);
     OnStart();
     GameLoop();
     Profiling::dump("temp_file");

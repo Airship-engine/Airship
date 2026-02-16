@@ -118,12 +118,14 @@ void Game::CreatePipelines() {
             {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3},
             {.name = "Color", .location = 1, .format = Airship::ShaderDataType::Float4},
         });
+    m_TriMaterial = std::make_unique<Airship::Material>(m_TriPipeline.get());
     m_BGPipeline = std::make_unique<Airship::Pipeline>(
         bgVertexShader, bgFragmentShader,
         std::vector<Airship::Pipeline::VertexAttributeDesc>{
             {.name = "Position", .location = 0, .format = Airship::ShaderDataType::Float3},
             {.name = "Hue", .location = 1, .format = Airship::ShaderDataType::Float},
         });
+    m_BGMaterial = std::make_unique<Airship::Material>(m_BGPipeline.get());
 }
 
 namespace {
@@ -260,8 +262,8 @@ void Game::OnGameLoop(float elapsed) {
 
     // Draw code
     m_BGPipeline->bind();
-    m_Renderer->draw(m_BGMesh, *m_BGPipeline);
+    m_Renderer.draw(m_BGMesh, *m_BGMaterial);
 
     m_TriPipeline->bind();
-    m_Renderer->draw(m_TriMesh, *m_TriPipeline, false);
+    m_Renderer.draw(m_TriMesh, *m_TriMaterial, false);
 }
