@@ -5,6 +5,12 @@
 #include <cstddef>
 
 namespace Airship::Utils {
+
+// Based on boost::hash_combine
+inline size_t hash_combine(size_t seed, size_t value) {
+    return seed ^ (value + 0x9e3779b9 + (seed << 6) + (seed >> 2));
+}
+
 template <typename value_type, std::size_t D>
 class Point {
 public:

@@ -14,5 +14,6 @@ TEST(Window, null) {
     Airship::Test::GameClass app2(true);
     app2.Run();
 
-    EXPECT_EQ(app2.GetWindow(), nullptr);
+    // Even in server mode, we should still have a window (for offscreen rendering)
+    EXPECT_NE(app2.GetWindow(), nullptr);
 }

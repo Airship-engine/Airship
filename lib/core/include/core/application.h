@@ -25,7 +25,7 @@ protected:
                             Input::KeyMods /*mods*/) {}
 
     bool m_ShouldClose = false;
-    std::unique_ptr<Renderer> m_Renderer;
+    Renderer m_Renderer;
 
     std::unique_ptr<Window> m_MainWindow;
     int m_Width = 800, m_Height = 600;

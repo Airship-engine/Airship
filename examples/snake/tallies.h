@@ -71,7 +71,7 @@ public:
         m_Count++;
     }
     bool full() const { return m_Count == MAX_TALLIES; }
-    void draw(Airship::Renderer& renderer, Airship::Pipeline& pipeline) { m_MeshData.draw(renderer, &pipeline); }
+    void draw(Airship::Renderer& renderer, const Airship::Material& mat) { m_MeshData.draw(renderer, mat); }
 
 private:
     DynamicMesh m_MeshData;
@@ -92,9 +92,9 @@ public:
         }
         m_TallyGroups.back().increment();
     }
-    void draw(Airship::Renderer& renderer, Airship::Pipeline& pipeline) {
+    void draw(Airship::Renderer& renderer, const Airship::Material& mat) {
         for (auto& group : m_TallyGroups)
-            group.draw(renderer, pipeline);
+            group.draw(renderer, mat);
     }
 
 private:

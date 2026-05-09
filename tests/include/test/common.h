@@ -36,12 +36,10 @@ public:
     GameClass(int width, int height) : Airship::Application(width, height, "test app") {}
     GameClass() : GameClass(600, 800) {}
     [[nodiscard]] Airship::Window* GetWindow() const { return m_MainWindow.get(); }
-    [[nodiscard]] Airship::Renderer* GetRenderer() const { return m_Renderer.get(); }
+    [[nodiscard]] const Airship::Renderer& GetRenderer() const { return m_Renderer; }
 
 protected:
-    void OnStart() override {
-        if (m_Renderer) m_Renderer->setClearColor(Airship::Colors::CornflowerBlue);
-    }
+    void OnStart() override { m_Renderer.setClearColor(Airship::Colors::CornflowerBlue); }
     void OnGameLoop(float /*elapsed*/) override {
         m_ShouldClose = true; // Skip the game loop
     }
