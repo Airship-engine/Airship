@@ -26,7 +26,8 @@
             "displayName": "Root configuration used by all other presets",
             "hidden": true,
             "cacheVariables": {
-                "CLANG_TIDY": "ON"
+              "CLANG_TIDY": "ON",
+              "AIRSHIP_INSTRUMENTATION":  "ON"
             },
             "inherits": [
                 "gen:ninja",

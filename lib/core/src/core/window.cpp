@@ -1,12 +1,14 @@
-#include "window.h"
+
+#include "core/window.h"
 
 #include <cassert>
 #include <string>
 
 #include "GLFW/glfw3.h"
-#include "input.h"
-#include "logging.h"
-#include "utils.hpp"
+#include "core/input.h"
+#include "core/instrumentation.h"
+#include "core/logging.h"
+#include "core/utils.hpp"
 
 // NOLINTNEXTLINE
 #define GLFW_CHECK()                                                                                                   \
@@ -178,16 +180,19 @@ Utils::Point<int, 2> Window::GetSize() const {
 }
 
 void Window::swapBuffers() const {
+    PROFILE_FUNCTION();
     glfwSwapBuffers(m_Window);
     GLFW_CHECK();
 }
 
 bool Window::shouldClose() const {
+    PROFILE_FUNCTION();
     int ret = glfwWindowShouldClose(m_Window);
     GLFW_CHECK();
     return ret != 0;
 }
 void Window::pollEvents() const {
+    PROFILE_FUNCTION();
     glfwPollEvents();
     GLFW_CHECK();
 }

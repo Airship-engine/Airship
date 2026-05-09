@@ -10,11 +10,11 @@
 #include <string>
 #include <vector>
 
-#include "color.h"
-#include "input.h"
-#include "opengl/renderer.h"
-#include "utils.hpp"
-#include "window.h"
+#include "core/input.h"
+#include "core/utils.hpp"
+#include "core/window.h"
+#include "render/color.h"
+#include "render/opengl/renderer.h"
 
 constexpr float DOWN_VEL = 0.2f; // Screen space / second
 constexpr float HUE_ROTATION_SPEED = 8.0f; // Degrees / second

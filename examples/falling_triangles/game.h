@@ -1,12 +1,12 @@
 #include <memory>
 #include <vector>
 
-#include "color.h"
 #include "core/application.h"
-#include "input.h"
-#include "opengl/renderer.h"
-#include "utils.hpp"
-#include "window.h"
+#include "core/input.h"
+#include "core/utils.hpp"
+#include "core/window.h"
+#include "render/color.h"
+#include "render/opengl/renderer.h"
 
 using vec3 = Airship::Utils::Point<float, 3>;
 

@@ -14,6 +14,7 @@
 
 #include "GL/gl3w.h"
 #include "GL/glcorearb.h"
+#include "core/instrumentation.h"
 #include "core/logging.h"
 #include "render/color.h"
 
@@ -217,6 +218,7 @@ Shader::Shader(ShaderType stype, const std::string& source) : m_ShaderID(glCreat
     int ok;
     glGetShaderiv(m_ShaderID, GL_COMPILE_STATUS, &ok);
     if (ok != GL_TRUE) {
+        [[maybe_unused]]
         std::string log = getCompileLog();
         SHIPLOG_ERROR(log);
     }
@@ -293,6 +295,7 @@ Pipeline::Pipeline(const Shader& vShader, const Shader& fShader, const std::vect
     int ok;
     glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &ok);
     if (ok != GL_TRUE) {
+        [[maybe_unused]]
         std::string log = getLinkLog();
         SHIPLOG_ERROR(log);
     }
@@ -340,6 +343,7 @@ void Renderer::draw(const std::vector<Mesh>& meshes, const Pipeline& pipeline, b
 }
 
 void Renderer::draw(const Mesh& mesh, const Pipeline& pipeline, bool doClear) const {
+    PROFILE_FUNCTION();
     SHIPLOG_TRACE("Drawing mesh with {} vertices", mesh.vertexCount());
     if (doClear) clear();
     // TODO: Cache VAO per mesh/pipeline combo
